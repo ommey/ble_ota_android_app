@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -22,12 +23,16 @@ sealed class BleOperationType {
 object ConnectionManager {
     private val operationQueue = ConcurrentLinkedQueue<BleOperationType>()
     private var pendingOperation: BleOperationType? = null
-    private var bluetoothGatt: BluetoothGatt? = null
+    var bluetoothGatt: BluetoothGatt? = null
+    var onServicesDiscovered: ((BluetoothGatt) -> Unit)? = null
+    var onConnectionStateChange: ((BluetoothGatt) -> Unit)? = null
+    var connected: Boolean = false
 
     private val gattCallback = object : BluetoothGattCallback() {
         @SuppressLint("MissingPermission")
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             val deviceAddress = gatt.device.address
+            val deviceName = gatt.device.name
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
@@ -36,14 +41,22 @@ object ConnectionManager {
                         Handler(Looper.getMainLooper()).post {
                             gatt.requestMtu(GATT_MAX_MTU_SIZE)
                         }
+                        connected = true
+                        onConnectionStateChange?.invoke(gatt)
+
                     }
                     BluetoothProfile.STATE_DISCONNECTED -> {
                         Log.i("GattCallback", "Disconnected from $deviceAddress")
+                        onConnectionStateChange?.invoke(gatt)
+                        connected = false
                         gatt.close()
+
+
                     }
                 }
             } else {
                 Log.e("GattCallback", "Error $status on $deviceAddress, disconnecting")
+                connected = false
                 gatt.close()
             }
             signalEndOfOperation()
@@ -59,10 +72,8 @@ object ConnectionManager {
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                gatt.printGattTable()
+                onServicesDiscovered?.invoke(gatt)
                 Log.i("GattCallback", "Service discovery complete")
-            } else {
-                Log.e("GattCallback", "Service discovery failed with status $status")
             }
         }
     }
@@ -71,6 +82,9 @@ object ConnectionManager {
     fun connectToDevice(context: Context, device: BluetoothDevice) {
         enqueueOperation(BleOperationType.Connect(device, context))
     }
+
+
+
 
     @Synchronized
     private fun enqueueOperation(operation: BleOperationType) {
@@ -96,20 +110,13 @@ object ConnectionManager {
         device.connectGatt(context, false, gattCallback)
     }
 
+
     @Synchronized
     private fun signalEndOfOperation() {
         pendingOperation = null
         if (operationQueue.isNotEmpty()) doNextOperation()
     }
 
-    private fun BluetoothGatt.printGattTable() {
-        if (services.isEmpty()) {
-            Log.i("printGattTable", "No service/characteristic available")
-            return
-        }
-        services.forEach { service ->
-            val chars = service.characteristics.joinToString("\n|--") { it.uuid.toString() }
-            Log.i("printGattTable", "\nService ${service.uuid}\nCharacteristics:\n|--$chars")
-        }
-    }
+
 }
+

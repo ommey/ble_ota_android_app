@@ -49,6 +49,8 @@ class ScanActivity : AppCompatActivity() {
             insets
         }
 
+
+
         bluetoothScanner = BluetoothScanner(this) { result ->
             val device = result.device
             if (deviceList.any { it.address == device.address }) return@BluetoothScanner
@@ -68,11 +70,15 @@ class ScanActivity : AppCompatActivity() {
         deviceRecycler.layoutManager = LinearLayoutManager(this)
         deviceRecycler.adapter = DeviceAdapter(deviceList) { selectedDevice ->
             stopBleScan()
-            val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
-            val bluetoothAdapter = bluetoothManager.adapter
-            val device = bluetoothAdapter.getRemoteDevice(selectedDevice.address)
-            ConnectionManager.connectToDevice(this, device)
-            Log.d("BLE_OTA","Connecting")
+
+            val intent = Intent(this, DeviceControlActivity::class.java)
+            intent.putExtra("device_address", selectedDevice.address)
+            startActivity(intent)
+//            val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
+//            val bluetoothAdapter = bluetoothManager.adapter
+//            val device = bluetoothAdapter.getRemoteDevice(selectedDevice.address)
+//            ConnectionManager.connectToDevice(this, device)
+            //Log.d("BLE_OTA","Connecting")
         }
 
         val selectedBinaryText = findViewById<TextView>(R.id.selectedBinaryText)
@@ -113,6 +119,7 @@ class ScanActivity : AppCompatActivity() {
             filePickerLauncher.launch(intent)
         }
     }
+
 
 
 
@@ -218,4 +225,6 @@ class ScanActivity : AppCompatActivity() {
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1
     }
+
+
 }
