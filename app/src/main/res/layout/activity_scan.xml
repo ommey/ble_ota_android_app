@@ -7,8 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ScanActivity"
-    android:padding="15dp"
-    >
+    android:padding="15dp">
 
     <!-- Header row -->
     <LinearLayout
@@ -16,79 +15,66 @@
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:orientation="horizontal"
-        android:padding="8dp"
+        android:paddingHorizontal="6dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:background="@drawable/frame"
-        >
+        android:background="@drawable/frame">
 
         <TextView
             android:id="@+id/RSSITextView"
             android:layout_width="0dp"
             android:layout_height="25dp"
             android:layout_weight="1"
-            android:gravity="center"
+            android:gravity="start|center_vertical"
+            android:paddingStart="4dp"
             android:text="RSSI"
             android:textStyle="bold"
-            android:layout_gravity="center"
-            android:foregroundGravity="bottom"
-            android:background="@drawable/frame"
-
-            />
+            android:background="@drawable/frame"/>
 
         <TextView
             android:id="@+id/DeviceTypeTextView"
             android:layout_width="0dp"
             android:layout_height="25dp"
             android:layout_weight="1"
-            android:gravity="center"
+            android:gravity="start|center_vertical"
+            android:paddingStart="4dp"
             android:text="Type"
             android:textStyle="bold"
-            android:layout_gravity="center"
-            android:foregroundGravity="bottom"
-            android:background="@drawable/frame"
-            />
+            android:background="@drawable/frame"/>
 
         <TextView
             android:id="@+id/DeviceNameTextView"
             android:layout_width="0dp"
             android:layout_height="25dp"
-            android:layout_weight="1"
-            android:gravity="center"
+            android:layout_weight="3"
+            android:gravity="start|center_vertical"
+            android:paddingStart="4dp"
             android:text="Name"
             android:textStyle="bold"
-            android:layout_gravity="center"
-            android:foregroundGravity="bottom"
-            android:background="@drawable/frame"
-            />
+            android:background="@drawable/frame"/>
 
         <TextView
             android:id="@+id/DeviceAddressTextView"
             android:layout_width="0dp"
             android:layout_height="25dp"
             android:layout_weight="3"
-            android:gravity="center"
+            android:gravity="start|center_vertical"
+            android:paddingStart="4dp"
             android:text="Address"
             android:textStyle="bold"
-            android:layout_gravity="center"
-            android:foregroundGravity="bottom"
-            android:background="@drawable/frame"
-            />
+            android:background="@drawable/frame"/>
 
         <TextView
             android:id="@+id/LastSeenTextView"
             android:layout_width="0dp"
             android:layout_height="25dp"
             android:layout_weight="1"
-            android:gravity="center"
+            android:gravity="start|center_vertical"
+            android:paddingStart="4dp"
             android:text="Seen"
             android:textStyle="bold"
-            android:layout_gravity="center"
-            android:foregroundGravity="bottom"
-            android:background="@drawable/frame"
-            />
-
+            android:background="@drawable/frame"/>
     </LinearLayout>
 
     <!-- RecyclerView -->
@@ -101,8 +87,7 @@
         app:layout_constraintTop_toBottomOf="@+id/columnDescriptionLayout"
         app:layout_constraintBottom_toTopOf="@+id/bleSwitch"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- Switch and label -->
     <Switch
@@ -125,6 +110,5 @@
         android:layout_marginStart="20dp"
         android:layout_marginBottom="15dp"
         android:background="@drawable/frame"
-        android:textAlignment="center"
-        />
+        android:textAlignment="center"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

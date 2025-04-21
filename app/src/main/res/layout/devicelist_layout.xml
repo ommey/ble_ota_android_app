@@ -9,14 +9,15 @@
     android:divider="?android:attr/dividerHorizontal"
     android:showDividers="middle">
 
-    <!-- RSSI (1 weight) -->
+    <!-- RSSI -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:orientation="vertical"
         android:background="@drawable/back_hue"
-        android:gravity="center">
+        android:gravity="start|center_vertical"
+        android:paddingStart="4dp">
 
         <ImageView
             android:id="@+id/BarsImageView"
@@ -40,7 +41,7 @@
             android:scrollHorizontally="true"/>
     </LinearLayout>
 
-    <!-- Device Type (1 weight) -->
+    <!-- Device Type -->
     <ImageView
         android:id="@+id/DeviceTypeImageView"
         android:layout_width="0dp"
@@ -48,17 +49,19 @@
         android:background="@drawable/back_hue"
         android:layout_weight="1"
         android:adjustViewBounds="true"
-        android:scaleType="centerInside"
+        android:scaleType="fitStart"
+        android:paddingStart="4dp"
         android:src="@drawable/device" />
 
-    <!-- Name (1 weight) -->
+    <!-- Device Name (now weight = 3) -->
     <TextView
         android:id="@+id/DeviceNameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_weight="3"
         android:maxLines="1"
-        android:gravity="center"
+        android:gravity="start|center_vertical"
+        android:paddingStart="4dp"
         android:textColor="@color/white"
         android:text="Device Name"
         android:singleLine="true"
@@ -68,15 +71,15 @@
         android:focusableInTouchMode="true"
         android:scrollHorizontally="true"/>
 
-    <!-- Address (3 weight) -->
+    <!-- Address (still weight = 3) -->
     <TextView
         android:id="@+id/DeviceAddressTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="3"
         android:maxLines="1"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="4dp"
+        android:gravity="start|center_vertical"
+        android:paddingStart="4dp"
         android:textColor="@color/white"
         android:text="MAC Address"
         android:singleLine="true"
@@ -86,14 +89,15 @@
         android:focusableInTouchMode="true"
         android:scrollHorizontally="true"/>
 
-    <!-- Last Seen (1.5 weight) -->
+    <!-- Last Seen -->
     <TextView
         android:id="@+id/LastSeenTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1.5"
         android:maxLines="1"
-        android:gravity="center"
+        android:gravity="start|center_vertical"
+        android:paddingStart="4dp"
         android:textColor="@color/white"
         android:text="18:45:23"
         android:singleLine="true"
