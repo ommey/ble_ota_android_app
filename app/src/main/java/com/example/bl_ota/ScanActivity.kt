@@ -4,9 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -81,7 +79,7 @@ class ScanActivity : AppCompatActivity() {
         val deviceTypeTextView = findViewById<TextView>(R.id.DeviceTypeTextView)
         val deviceNameTextView = findViewById<TextView>(R.id.DeviceNameTextView)
         val deviceAddressTextView = findViewById<TextView>(R.id.DeviceAddressTextView)
-        val lastSeenTextView = findViewById<TextView>(R.id.LastSeenTextView)
+        val lastSeenTextView = findViewById<TextView>(R.id.LastSeenTextView_yymmdd)
         val bleSwitch = findViewById<Switch>(R.id.bleSwitch)
 
         val sortHandler: (TextView) -> Unit = { view ->

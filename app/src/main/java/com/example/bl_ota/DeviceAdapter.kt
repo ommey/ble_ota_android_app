@@ -27,9 +27,13 @@ class DeviceAdapter(
         holder.deviceNameTextView.text = currentItem.name
         holder.deviceAddressTextView.text = currentItem.address
 
-        val sdf = SimpleDateFormat("YY/MM/dd - HH:mm", Locale.getDefault())
-        val seenText = sdf.format(Date(currentItem.lastSeen))
-        holder.lastSeenTextView.text = seenText
+        val sdf_yymmdd = SimpleDateFormat("YY/MM/dd", Locale.getDefault())
+        val seenText_yymmdd = sdf_yymmdd.format(Date(currentItem.lastSeen))
+        holder.lastSeenTextView_yymmdd.text = seenText_yymmdd
+
+        val sdf_hhmmss = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val seenText_hhmmss = sdf_hhmmss.format(Date(currentItem.lastSeen))
+        holder.lastSeenTextView_hhmmss.text = seenText_hhmmss
 
         holder.RSSITextView.text = "${currentItem.rssi}"
         holder.barsImageView.setImageDrawable(
@@ -41,7 +45,6 @@ class DeviceAdapter(
 
         holder.deviceNameTextView.isSelected = true
         holder.deviceAddressTextView.isSelected = true
-        holder.lastSeenTextView.isSelected = true
 
         holder.itemView.setOnClickListener {
             onItemClick(currentItem)
@@ -56,6 +59,7 @@ class DeviceAdapter(
         val deviceTypeImageView: ImageView = itemView.findViewById(R.id.DeviceTypeImageView)
         val deviceNameTextView: TextView = itemView.findViewById(R.id.DeviceNameTextView)
         val deviceAddressTextView: TextView = itemView.findViewById(R.id.DeviceAddressTextView)
-        val lastSeenTextView: TextView = itemView.findViewById(R.id.LastSeenTextView)
+        val lastSeenTextView_yymmdd: TextView = itemView.findViewById(R.id.LastSeenTextView_yymmdd)
+        val lastSeenTextView_hhmmss: TextView = itemView.findViewById(R.id.LastSeenTextView_hhmmss)
     }
 }

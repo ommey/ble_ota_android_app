@@ -8,7 +8,8 @@
     android:minHeight="25dp"
     android:maxHeight="30dp"
     android:divider="?android:attr/dividerHorizontal"
-    android:showDividers="middle">
+    android:showDividers="middle"
+    android:background="@drawable/device_frame">
 
     <!-- RSSI -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -16,7 +17,6 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:orientation="horizontal"
-        android:background="@drawable/back_hue"
         android:gravity="start|center_vertical"
         android:paddingStart="4dp">
 
@@ -47,7 +47,6 @@
         android:id="@+id/DeviceTypeImageView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/back_hue"
         android:layout_weight="1"
         android:adjustViewBounds="true"
         android:scaleType="fitStart"
@@ -91,20 +90,39 @@
         android:scrollHorizontally="true"/>
 
     <!-- Last Seen -->
-    <TextView
-        android:id="@+id/LastSeenTextView"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1.5"
         android:maxLines="1"
-        android:gravity="start|center_vertical"
-        android:paddingStart="4dp"
-        android:textColor="@color/white"
-        android:text="18:45:23"
-        android:singleLine="true"
-        android:ellipsize="marquee"
-        android:marqueeRepeatLimit="marquee_forever"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:scrollHorizontally="true"/>
+        >
+        <TextView
+            android:id="@+id/LastSeenTextView_yymmdd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:gravity="start|center_vertical"
+            android:paddingStart="4dp"
+            android:textColor="@color/white"
+            android:text="18:45:23"
+            android:singleLine="true"/>
+        <TextView
+            android:id="@+id/LastSeenTextView_hhmmss"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:gravity="start|center_vertical"
+            android:paddingStart="4dp"
+            android:textColor="@color/white"
+            android:text="18:45:23"
+            android:singleLine="true"/>
+
+
+    </LinearLayout>
+
+
+
+
+
 </LinearLayout>

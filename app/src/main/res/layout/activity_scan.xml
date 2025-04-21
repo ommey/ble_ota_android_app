@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+    android:background="@color/blue"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ScanActivity"
@@ -19,68 +20,68 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:background="@drawable/frame">
+        >
 
         <TextView
             android:id="@+id/RSSITextView"
             android:layout_width="0dp"
             android:layout_height="25dp"
             android:layout_weight="1"
-            android:textSize="8sp"
+            android:textSize="12sp"
             android:gravity="start|center_vertical"
             android:paddingStart="4dp"
-            android:text="RSSI dBm"
-            android:background="@drawable/frame"/>
+            android:text="dBm"
+            />
 
         <TextView
             android:id="@+id/DeviceTypeTextView"
             android:layout_width="0dp"
             android:layout_height="25dp"
-            android:layout_weight="1"
-            android:textSize="8sp"
+            android:layout_weight="0.75"
+            android:textSize="12sp"
             android:gravity="start|center_vertical"
             android:paddingStart="4dp"
             android:text="Type"
             android:textStyle="bold"
-            android:background="@drawable/frame"/>
+            />
 
         <TextView
             android:id="@+id/DeviceNameTextView"
             android:layout_width="0dp"
             android:layout_height="25dp"
-            android:layout_weight="2"
-            android:textSize="8sp"
+            android:layout_weight="1.8"
+            android:textSize="12sp"
 
             android:gravity="start|center_vertical"
             android:paddingStart="4dp"
             android:text="Name"
             android:textStyle="bold"
-            android:background="@drawable/frame"/>
+            />
 
         <TextView
             android:id="@+id/DeviceAddressTextView"
             android:layout_width="0dp"
             android:layout_height="25dp"
-            android:layout_weight="3"
-            android:textSize="8sp"
+            android:layout_weight="2.6"
+            android:textSize="12sp"
 
             android:gravity="start|center_vertical"
             android:paddingStart="4dp"
             android:text="Address"
             android:textStyle="bold"
-            android:background="@drawable/frame"/>
+            />
 
         <TextView
-            android:id="@+id/LastSeenTextView"
+            android:id="@+id/LastSeenTextView_yymmdd"
             android:layout_width="0dp"
             android:layout_height="25dp"
-            android:textSize="8sp"
-            android:layout_weight="1"
+            android:textSize="12sp"
+            android:layout_weight="1.35"
             android:gravity="start|center_vertical"
             android:paddingStart="4dp"
             android:text="Seen"
             android:textStyle="bold"
-            android:background="@drawable/frame"/>
+            />
     </LinearLayout>
 
     <!-- RecyclerView -->
@@ -93,7 +94,8 @@
         app:layout_constraintTop_toBottomOf="@+id/columnDescriptionLayout"
         app:layout_constraintBottom_toTopOf="@+id/bleSwitch"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        android:fadingEdge="horizontal"/>
 
     <!-- Switch and label -->
     <Switch
@@ -115,6 +117,5 @@
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginStart="20dp"
         android:layout_marginBottom="15dp"
-        android:background="@drawable/frame"
         android:textAlignment="center"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
