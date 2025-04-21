@@ -1,6 +1,5 @@
 package com.example.bl_ota
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,7 +31,7 @@ class DeviceAdapter(
         val seenText = sdf.format(Date(currentItem.lastSeen))
         holder.lastSeenTextView.text = seenText
 
-        holder.RSSITextView.text = "${currentItem.rssi} dBm"
+        holder.RSSITextView.text = "${currentItem.rssi}"
         holder.barsImageView.setImageDrawable(
             getBarsImageFromRssi(holder.itemView.context, currentItem.rssi)
         )
