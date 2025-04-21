@@ -68,7 +68,8 @@ class ScanActivity : AppCompatActivity() {
         deviceRecycler.layoutManager = LinearLayoutManager(this)
         deviceRecycler.adapter = DeviceAdapter(deviceList) { selectedDevice ->
             stopBleScan()
-            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+            val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
+            val bluetoothAdapter = bluetoothManager.adapter
             val device = bluetoothAdapter.getRemoteDevice(selectedDevice.address)
             ConnectionManager.connectToDevice(this, device)
             Log.d("BLE_OTA","Connecting")
@@ -85,6 +86,7 @@ class ScanActivity : AppCompatActivity() {
         val sortHandler: (TextView) -> Unit = { view ->
             val sortBy = view.text.toString()
             Toast.makeText(this, "Sorting by $sortBy", Toast.LENGTH_SHORT).show()
+            // TODO: GÖR att det sorteras, kanske enum
         }
         listOf(RSSITextView, deviceTypeTextView, deviceNameTextView, deviceAddressTextView, lastSeenTextView)
             .forEach { it.setOnClickListener { _ -> sortHandler(it) } }
