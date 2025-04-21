@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">BL-OTA</string>
+    <string name="selectedBinary">Import bin from filesystem</string>
+    <string name="selectedBinaryName">Selected: %1$s</string>
+    <string name="deviceName">U/A</string>
+    <string name="deviceAddress">U/A</string>
+    <string name="LastSeen">U/A</string>
+    <string name="RSSI">U/A</string>
 </resources>
