@@ -162,6 +162,25 @@ class ExpandableServiceListAdapter(
                 .start()
         }
 
+        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
+            val writeNoRspBlock = inflater.inflate(R.layout.write_no_response_block, capLayout, false)
+            val input = writeNoRspBlock.findViewById<EditText>(R.id.writeNoRspInput)
+            val sendBtn = writeNoRspBlock.findViewById<Button>(R.id.sendWriteNoRspBtn)
+
+            sendBtn.setOnClickListener {
+                val text = input.text.toString()
+                val bytes = text.toByteArray()
+                characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                characteristic.value = bytes
+                ConnectionManager.writeCharacteristic(characteristic)
+                Toast.makeText(context, "Sent (No Rsp): $text", Toast.LENGTH_SHORT).show()
+            }
+
+            capLayout.addView(writeNoRspBlock)
+        }
+
+
+
         // Reset arrow rotation when view is reused
         childArrow.rotation = if (capLayout.isVisible) 180f else 0f
 

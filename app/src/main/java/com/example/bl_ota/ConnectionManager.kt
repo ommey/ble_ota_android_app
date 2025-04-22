@@ -125,10 +125,10 @@ object ConnectionManager {
 
     }
 
+    @SuppressLint("MissingPermission")
     fun writeCharacteristic(characteristic: BluetoothGattCharacteristic) {
-
+        bluetoothGatt?.writeCharacteristic(characteristic)
     }
-
     fun toggleIndications(characteristic: BluetoothGattCharacteristic) {
 
     }
