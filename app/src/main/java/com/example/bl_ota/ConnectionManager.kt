@@ -117,6 +117,22 @@ object ConnectionManager {
         if (operationQueue.isNotEmpty()) doNextOperation()
     }
 
+    fun toggleNotifications(characteristic: BluetoothGattCharacteristic) {
+
+    }
+
+    fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
+
+    }
+
+    fun writeCharacteristic(characteristic: BluetoothGattCharacteristic) {
+
+    }
+
+    fun toggleIndications(characteristic: BluetoothGattCharacteristic) {
+
+    }
+
 
 }
 

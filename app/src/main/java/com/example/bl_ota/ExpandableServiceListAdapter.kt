@@ -7,10 +7,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isVisible
+import com.example.bl_ota.ble.ConnectionManager
 
 class ExpandableServiceListAdapter(
     private val context: Context,
@@ -94,10 +98,56 @@ class ExpandableServiceListAdapter(
         val notify = (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0
         val indicate = (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0
 
-        view.findViewById<TextView>(R.id.capRead).text = "Read: ${if (read) "✅" else "❌"}"
-        view.findViewById<TextView>(R.id.capWrite).text = "Write: ${if (write) "✅" else "❌"}"
-        view.findViewById<TextView>(R.id.capNotify).text = "Notify: ${if (notify) "✅" else "❌"}"
-        view.findViewById<TextView>(R.id.capIndicate).text = "Indicate: ${if (indicate) "✅" else "❌"}"
+        capLayout.removeAllViews()
+
+        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
+            val readBlock = inflater.inflate(R.layout.read_block, capLayout, false)
+            val readBtn = readBlock.findViewById<Button>(R.id.readBtn)
+            val output = readBlock.findViewById<TextView>(R.id.readOutput)
+
+            readBtn.setOnClickListener {
+                ConnectionManager.readCharacteristic(characteristic)
+                Toast.makeText(context, "Reading...", Toast.LENGTH_SHORT).show()
+            }
+
+            capLayout.addView(readBlock)
+        }
+
+        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
+            val writeBlock = inflater.inflate(R.layout.write_block, capLayout, false)
+            val input = writeBlock.findViewById<EditText>(R.id.writeInput)
+            val sendBtn = writeBlock.findViewById<Button>(R.id.sendWriteBtn)
+
+            sendBtn.setOnClickListener {
+                val text = input.text.toString()
+                val bytes = text.toByteArray()
+                characteristic.value = bytes
+                ConnectionManager.writeCharacteristic(characteristic)
+                Toast.makeText(context, "Sent: $text", Toast.LENGTH_SHORT).show()
+            }
+
+            capLayout.addView(writeBlock)
+        }
+
+        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
+            val notifyBlock = inflater.inflate(R.layout.notify_block, capLayout, false)
+            val notifyBtn = notifyBlock.findViewById<Button>(R.id.notifyToggleBtn)
+            notifyBtn.setOnClickListener {
+                ConnectionManager.toggleNotifications(characteristic)
+                Toast.makeText(context, "Notify toggled", Toast.LENGTH_SHORT).show()
+            }
+            capLayout.addView(notifyBlock)
+        }
+
+        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0) {
+            val indicateBlock = inflater.inflate(R.layout.indicate_block, capLayout, false)
+            val indicateBtn = indicateBlock.findViewById<Button>(R.id.indicateToggleBtn)
+            indicateBtn.setOnClickListener {
+                ConnectionManager.toggleIndications(characteristic)
+                Toast.makeText(context, "Indicate toggled", Toast.LENGTH_SHORT).show()
+            }
+            capLayout.addView(indicateBlock)
+        }
 
         // Set up toggle behavior
         view.setOnClickListener {
