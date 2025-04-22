@@ -10,7 +10,7 @@
         android:layout_height="0dp"
         android:orientation="horizontal"
         android:layout_weight="1"
-        android:padding="10dp">
+        >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
@@ -18,7 +18,7 @@
             android:layout_weight="1"
             android:orientation="horizontal"
             android:gravity="start|center_vertical"
-            android:paddingStart="4dp">
+            >
 
 
             <TextView
@@ -62,7 +62,7 @@
             android:layout_weight="1"
             android:orientation="horizontal"
             android:gravity="start|center_vertical"
-            android:paddingStart="4dp">
+           >
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -110,7 +110,6 @@
                 android:textStyle="bold"
                 android:orientation="horizontal"
                 android:gravity="start|center_vertical"
-                android:paddingStart="4dp"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:scaleType="centerInside"
@@ -127,7 +126,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="10dp">
+        >
 <!--        <TextView-->
 <!--            android:layout_width="match_parent"-->
 <!--            android:layout_height="wrap_content"-->

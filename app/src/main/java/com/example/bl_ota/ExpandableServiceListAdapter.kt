@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 
@@ -51,10 +52,13 @@ class ExpandableServiceListAdapter(
         val serviceTextView = view.findViewById<TextView>(R.id.serviceUUIDTextView)
         serviceTextView.text = service.uuid.toString()
         serviceTextView.isSelected = true
-
+        val expandArrow = view.findViewById<ImageView>(R.id.expandArrow)
         val aliasTextView = view.findViewById<TextView>(R.id.customAliasTextView)
         aliasTextView.text = "" // Set alias if needed
         aliasTextView.isSelected = true
+
+
+            expandArrow.rotation = if (isExpanded) 180f else 0f
 
         return view
     }
@@ -77,6 +81,7 @@ class ExpandableServiceListAdapter(
         val charTextView = view.findViewById<TextView>(R.id.characteristicUUIDTextView)
         val aliasTextView = view.findViewById<TextView>(R.id.customAliasTextView)
         val capLayout = view.findViewById<LinearLayout>(R.id.capabilityLayout)
+        val childArrow = view.findViewById<ImageView>(R.id.childArrow)
 
         charTextView.text = characteristic.uuid.toString()
         aliasTextView.text = "" // Optional
@@ -97,6 +102,8 @@ class ExpandableServiceListAdapter(
         // Toggle capability visibility when row clicked
         view.setOnClickListener {
             capLayout.visibility = if (capLayout.visibility == View.GONE) View.VISIBLE else View.GONE
+            childArrow?.rotation 180f
+
         }
 
         return view

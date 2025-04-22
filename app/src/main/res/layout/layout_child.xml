@@ -41,14 +41,29 @@
     <!-- Characteristic row -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="45dp"
         android:orientation="horizontal"
         android:paddingTop="2dp">
 
         <TextView
             android:id="@+id/characteristicUUIDTextView"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:minWidth="50dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.25"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:scrollHorizontally="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"  />
+
+        <TextView
+            android:id="@+id/customAliasTextView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_weight="1.75"
             android:textSize="16sp"
             android:textColor="@color/white"
@@ -59,19 +74,15 @@
             android:focusable="false"
             android:focusableInTouchMode="false" />
 
-        <TextView
-            android:id="@+id/customAliasTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.75"
-            android:textSize="16sp"
-            android:textColor="@color/white"
-            android:ellipsize="marquee"
-            android:marqueeRepeatLimit="marquee_forever"
-            android:singleLine="true"
-            android:scrollHorizontally="true"
-            android:focusable="false"
-            android:focusableInTouchMode="false" />
+            <ImageView
+                android:id="@+id/childArrow"
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/down_arrow"
+                android:contentDescription="Expand/collapse arrow"
+                android:padding="4dp"/>
+
     </LinearLayout>
 
     <!-- Capabilities section (initially hidden) -->
@@ -81,8 +92,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
-        android:paddingTop="4dp"
-        android:paddingStart="10dp">
+        >
 
         <TextView
             android:id="@+id/capRead"
