@@ -57,8 +57,7 @@ class ExpandableServiceListAdapter(
         aliasTextView.text = "" // Set alias if needed
         aliasTextView.isSelected = true
 
-
-            expandArrow.rotation = if (isExpanded) 180f else 0f
+        expandArrow.animate().rotation(if (isExpanded) 180f else 0f).setDuration(200).start()
 
         return view
     }
@@ -84,11 +83,11 @@ class ExpandableServiceListAdapter(
         val childArrow = view.findViewById<ImageView>(R.id.childArrow)
 
         charTextView.text = characteristic.uuid.toString()
-        aliasTextView.text = "" // Optional
+        aliasTextView.text = ""
         charTextView.isSelected = true
         aliasTextView.isSelected = true
 
-        // Capabilities logic
+        // Capabilities info
         val read = (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_READ) != 0
         val write = (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
         val notify = (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0
@@ -99,12 +98,21 @@ class ExpandableServiceListAdapter(
         view.findViewById<TextView>(R.id.capNotify).text = "Notify: ${if (notify) "✅" else "❌"}"
         view.findViewById<TextView>(R.id.capIndicate).text = "Indicate: ${if (indicate) "✅" else "❌"}"
 
-        // Toggle capability visibility when row clicked
+        // Set up toggle behavior
         view.setOnClickListener {
-            capLayout.visibility = if (capLayout.visibility == View.GONE) View.VISIBLE else View.GONE
-            childArrow?.rotation 180f
+            val isVisible = capLayout.visibility == View.VISIBLE
 
+            capLayout.visibility = if (isVisible) View.GONE else View.VISIBLE
+
+            // Rotate the arrow accordingly
+            childArrow.animate()
+                .rotation(if (isVisible) 0f else 180f)
+                .setDuration(200)
+                .start()
         }
+
+        // Reset arrow rotation when view is reused
+        childArrow.rotation = if (capLayout.visibility == View.VISIBLE) 180f else 0f
 
         return view
     }
