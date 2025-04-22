@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/service_control_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="2dp"
+    android:background="@color/black"
+    tools:context=".ServiceControlActivity">
+
+    <!-- 📡 RSSI & MTU Info Block -->
+    <!-- COPY YOUR EXISTING BLOCK HERE -->
+    <!-- I use <include> here for clarity, but you can paste your full block inline if not using separate layout file -->
+    <include layout="@layout/service_list_layout_headings" /> <!-- ← optional, see below -->
+
+    <!-- 🧾 Header Row -->
+    <!-- 🧾 Header Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingVertical="2dp"
+        android:background="#333333">
+
+        <TextView
+            android:id="@+id/ServiceUUIDHeadTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.75"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:text="Service UUID"
+            android:gravity="center"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:scrollHorizontally="true" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.75"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:text="Alias"
+            android:gravity="center"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:scrollHorizontally="true" />
+    </LinearLayout>
+
+
+    <!-- 📋 Expandable List View -->
+    <ExpandableListView
+        android:id="@+id/expandable_service_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:dividerHeight="1dp"
+        android:padding="2dp"
+        android:childDivider="@android:color/darker_gray"
+        android:scrollbars="vertical" />
+</LinearLayout>

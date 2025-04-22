@@ -71,7 +71,7 @@ class ScanActivity : AppCompatActivity() {
         deviceRecycler.adapter = DeviceAdapter(deviceList) { selectedDevice ->
             stopBleScan()
 
-            val intent = Intent(this, DeviceControlActivity::class.java)
+            val intent = Intent(this, ServiceControlActivity::class.java)
             intent.putExtra("device_address", selectedDevice.address)
             startActivity(intent)
 //            val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
