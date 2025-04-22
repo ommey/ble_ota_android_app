@@ -10,6 +10,7 @@ import android.widget.BaseExpandableListAdapter
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.isVisible
 
 class ExpandableServiceListAdapter(
     private val context: Context,
@@ -100,7 +101,7 @@ class ExpandableServiceListAdapter(
 
         // Set up toggle behavior
         view.setOnClickListener {
-            val isVisible = capLayout.visibility == View.VISIBLE
+            val isVisible = capLayout.isVisible
 
             capLayout.visibility = if (isVisible) View.GONE else View.VISIBLE
 
@@ -112,7 +113,7 @@ class ExpandableServiceListAdapter(
         }
 
         // Reset arrow rotation when view is reused
-        childArrow.rotation = if (capLayout.visibility == View.VISIBLE) 180f else 0f
+        childArrow.rotation = if (capLayout.isVisible) 180f else 0f
 
         return view
     }

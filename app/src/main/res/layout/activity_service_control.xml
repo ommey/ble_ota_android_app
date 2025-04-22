@@ -18,11 +18,11 @@
     <!-- 🧾 Header Row -->
     <!-- 🧾 Header Row -->
     <LinearLayout
+        android:backgroundTint="@color/orange"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingVertical="2dp"
-        android:background="#333333">
+        android:background="@color/orange">
 
         <TextView
             android:id="@+id/ServiceUUIDHeadTextView"
@@ -63,10 +63,12 @@
     <ExpandableListView
         android:id="@+id/expandable_service_list"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_gravity="top"
+        android:layout_height="40dp"
         android:layout_weight="1"
+        android:hapticFeedbackEnabled="true"
         android:dividerHeight="1dp"
-        android:padding="2dp"
         android:childDivider="@android:color/darker_gray"
+
         android:scrollbars="vertical" />
 </LinearLayout>
