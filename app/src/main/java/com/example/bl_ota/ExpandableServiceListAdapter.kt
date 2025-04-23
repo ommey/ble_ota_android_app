@@ -1,5 +1,6 @@
 package com.example.bl_ota
 
+import android.animation.LayoutTransition
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.content.Context
@@ -68,6 +69,10 @@ class ExpandableServiceListAdapter(
         val characteristic = getChild(groupPosition, childPosition) as BluetoothGattCharacteristic
 
         val capLayout = view.findViewById<LinearLayout>(R.id.capabilityLayout)
+        val transition = LayoutTransition()
+        transition.enableTransitionType(LayoutTransition.CHANGING)
+        capLayout.layoutTransition = transition
+
         val childArrow = view.findViewById<ImageView>(R.id.childArrow)
 
         view.findViewById<TextView>(R.id.characteristicUUIDTextView).text = characteristic.uuid.toString()
@@ -245,12 +250,66 @@ class ExpandableServiceListAdapter(
 
 
         view.setOnClickListener {
-            val isVisible = capLayout.isVisible
-            capLayout.visibility = if (isVisible) View.GONE else View.VISIBLE
-            childArrow.animate().rotation(if (isVisible) 0f else 180f).setDuration(200).start()
+            val isExpanded = capLayout.visibility == View.VISIBLE
+
+            if (isExpanded) {
+                // COLLAPSE
+                capLayout.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                val initialHeight = capLayout.measuredHeight
+
+                val animation = object : android.view.animation.Animation() {
+                    override fun applyTransformation(interpolatedTime: Float, t: android.view.animation.Transformation) {
+                        if (interpolatedTime == 1f) {
+                            capLayout.visibility = View.GONE
+                        } else {
+                            capLayout.layoutParams.height = (initialHeight * (1 - interpolatedTime)).toInt()
+                            capLayout.requestLayout()
+                        }
+                    }
+
+                    override fun willChangeBounds(): Boolean = true
+                }
+
+                animation.duration = (initialHeight / capLayout.context.resources.displayMetrics.density).toLong() * 2
+                capLayout.startAnimation(animation)
+                childArrow.animate().rotation(0f).setDuration(200).start()
+            } else {
+                // EXPAND
+                capLayout.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                val targetHeight = capLayout.measuredHeight
+
+                capLayout.layoutParams.height = 0
+                capLayout.visibility = View.VISIBLE
+
+                val animation = object : android.view.animation.Animation() {
+                    override fun applyTransformation(interpolatedTime: Float, t: android.view.animation.Transformation) {
+                        capLayout.layoutParams.height = (targetHeight * interpolatedTime).toInt()
+                        capLayout.requestLayout()
+                    }
+
+                    override fun willChangeBounds(): Boolean = true
+                }
+
+                animation.duration = (targetHeight / capLayout.context.resources.displayMetrics.density).toLong() * 2
+                capLayout.startAnimation(animation)
+                childArrow.animate().rotation(180f).setDuration(200).start()
+            }
         }
 
+
+
         childArrow.rotation = if (capLayout.isVisible) 180f else 0f
+
+
+            view.alpha = 0f
+            view.translationY = -20f
+            view.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setInterpolator(android.view.animation.OvershootInterpolator())
+                .setDuration(500)
+                .start()
+
 
         return view
     }

@@ -34,10 +34,44 @@ class FeatureExpandableAdapter(
         return view
     }
 
-    override fun getChildView(groupPosition: Int, childPosition: Int, isLastChild: Boolean, convertView: View?, parent: ViewGroup?): View {
+    override fun getChildView(
+        groupPosition: Int,
+        childPosition: Int,
+        isLastChild: Boolean,
+        convertView: View?,
+        parent: ViewGroup?
+    ): View {
         val feature = featureList[groupPosition]
         val view = LayoutInflater.from(context).inflate(feature.layoutResId, parent, false)
+
+        // Bind feature-specific UI
         feature.binder(view, gatt)
+
+        // Apply smooth vertical expansion (curtain-style) if newly created
+            view.measure(
+                View.MeasureSpec.makeMeasureSpec(parent?.width ?: 0, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.UNSPECIFIED
+            )
+            val targetHeight = view.measuredHeight
+
+            view.layoutParams.height = 0
+            view.visibility = View.VISIBLE
+
+            val animation = object : android.view.animation.Animation() {
+                override fun applyTransformation(interpolatedTime: Float, t: android.view.animation.Transformation) {
+                    view.layoutParams.height = (targetHeight * interpolatedTime).toInt()
+                    view.requestLayout()
+                }
+
+                override fun willChangeBounds(): Boolean = true
+            }
+
+            animation.duration = (targetHeight / view.context.resources.displayMetrics.density).toLong() * 5
+            view.startAnimation(animation)
+
+
         return view
     }
+
+
 }
