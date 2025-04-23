@@ -61,7 +61,7 @@ class ServiceControlActivity : AppCompatActivity() {
 
         ConnectionManager.onMtuChanged = { mtu ->
             runOnUiThread {
-                mtuValueTextView.text = "$mtu bytes"
+                mtuValueTextView.text = "$mtu"
                 // optionally: change MTU image here if you want visual feedback
             }
         }
