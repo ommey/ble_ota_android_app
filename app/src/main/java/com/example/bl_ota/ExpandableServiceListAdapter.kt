@@ -46,7 +46,6 @@ class ExpandableServiceListAdapter(
 
         val service = getGroup(groupPosition) as BluetoothGattService
         view.findViewById<TextView>(R.id.serviceUUIDTextView).text = service.uuid.toString()
-        view.findViewById<TextView>(R.id.customAliasTextView).text = ""
         view.findViewById<ImageView>(R.id.expandArrow).animate()
             .rotation(if (isExpanded) 180f else 0f).setDuration(200).start()
 
@@ -63,8 +62,8 @@ class ExpandableServiceListAdapter(
         val inflater = LayoutInflater.from(context)
         val view = convertView ?: inflater.inflate(R.layout.layout_child, parent, false)
 
-        val headerLayout = view.findViewById<View>(R.id.characteristicHeader)
-        headerLayout.visibility = if (childPosition == 0) View.VISIBLE else View.GONE
+        //val headerLayout = view.findViewById<View>(R.id.characteristicHeader)
+        //headerLayout.visibility = if (childPosition == 0) View.VISIBLE else View.GONE
 
         val characteristic = getChild(groupPosition, childPosition) as BluetoothGattCharacteristic
 
@@ -72,7 +71,6 @@ class ExpandableServiceListAdapter(
         val childArrow = view.findViewById<ImageView>(R.id.childArrow)
 
         view.findViewById<TextView>(R.id.characteristicUUIDTextView).text = characteristic.uuid.toString()
-        view.findViewById<TextView>(R.id.customAliasTextView).text = ""
 
         capLayout.removeAllViews()
 

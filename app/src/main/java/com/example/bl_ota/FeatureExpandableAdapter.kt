@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
+import android.widget.ImageView
 import android.widget.TextView
 import com.example.bl_ota.DiscoveredFeature
 import com.example.bl_ota.R
@@ -28,6 +29,8 @@ class FeatureExpandableAdapter(
     override fun getGroupView(groupPosition: Int, isExpanded: Boolean, convertView: View?, parent: ViewGroup?): View {
         val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.layout_known_service_group, parent, false)
         view.findViewById<TextView>(R.id.knownServiceNameTextView).text = featureList[groupPosition].name
+        view.findViewById<ImageView>(R.id.feature_expandArrow).animate()
+            .rotation(if (isExpanded) 180f else 0f).setDuration(200).start()
         return view
     }
 
