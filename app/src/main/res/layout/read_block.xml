@@ -1,67 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-android:id="@+id/readBlock"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:orientation="vertical"
-android:padding="8dp"
-android:gravity="center_vertical">
-
-<!-- Top Row: Text Block (left) + Icon (right) -->
-<LinearLayout
+    android:id="@+id/readBlock"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingBottom="4dp">
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:gravity="center_vertical">
 
-    <!-- Text Column -->
+    <!-- Header Row -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:paddingBottom="4dp">
 
-        <TextView
-            android:id="@+id/characteristicTypeTextview"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textAllCaps="true"
-            android:text="read"
-            android:textSize="14sp"
-            android:textColor="@color/white"
-            android:textStyle="bold"/>
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/readOutput"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Read data appears here"
-            android:textSize="14sp"
-            android:textColor="@color/white"/>
+            <TextView
+                android:id="@+id/characteristicTypeTextview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="READ"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/readOutput"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Value will appear here"
+                android:textColor="@color/white" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/readInteractionIcon"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:src="@drawable/success" />
     </LinearLayout>
 
-    <!-- Icon on Right -->
-    <ImageView
-        android:id="@+id/readInteractionIcon"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:src="@drawable/success"
-        android:layout_marginStart="8dp"/>
-</LinearLayout>
-
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical">
     <Button
-        android:minWidth="125dp"
         android:id="@+id/readBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Read" />
-</LinearLayout>
+        android:text="Read Value" />
 </LinearLayout>

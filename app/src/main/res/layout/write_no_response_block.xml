@@ -7,19 +7,16 @@
     android:padding="8dp"
     android:gravity="center_vertical">
 
-    <!-- Top Row: Text Block (left) + Icon (right) -->
+    <!-- Header Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
         android:paddingBottom="4dp">
 
-        <!-- Text Column -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="top"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -27,24 +24,25 @@
                 android:id="@+id/characteristicTypeTextview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAllCaps="true"
-                android:text="Write No Response"
-                android:textSize="14sp"
+                android:text="WRITE NO RESPONSE"
                 android:textColor="@color/white"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/writeNoRspStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Waiting to send..."
+                android:textColor="@color/white" />
         </LinearLayout>
 
-        <!-- Icon on Right -->
         <ImageView
-            android:id="@+id/WriteNoResponseInteractionIcon"
+            android:id="@+id/writeNoRspInteractionIcon"
             android:layout_width="75dp"
             android:layout_height="75dp"
-            android:src="@drawable/success"
-            android:layout_marginStart="8dp"/>
+            android:src="@drawable/success" />
     </LinearLayout>
 
-    <!-- EditText + Send Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -61,10 +59,9 @@
             android:inputType="text" />
 
         <Button
-            android:minWidth="125dp"
             android:id="@+id/sendWriteNoRspBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send" />
+            android:text="Send (No Rsp)" />
     </LinearLayout>
 </LinearLayout>

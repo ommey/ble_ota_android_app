@@ -7,19 +7,16 @@
     android:padding="8dp"
     android:gravity="center_vertical">
 
-    <!-- Top Row: Text Block (left) + Icon (right) -->
+    <!-- Header Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
         android:paddingBottom="4dp">
 
-        <!-- Text Column -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="top"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -27,41 +24,28 @@
                 android:id="@+id/characteristicTypeTextview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAllCaps="true"
-                android:text="notify"
-                android:textSize="14sp"
+                android:text="INDICATE"
                 android:textColor="@color/white"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/indicateStatusTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Indications turned off"
-                android:textSize="14sp"
-                android:textColor="@color/white"/>
-
+                android:text="Indications off"
+                android:textColor="@color/white" />
         </LinearLayout>
 
-        <!-- Icon on Right -->
         <ImageView
             android:id="@+id/indicateInteractionIcon"
             android:layout_width="75dp"
             android:layout_height="75dp"
-            android:src="@drawable/success"
-            android:layout_marginStart="8dp"/>
+            android:src="@drawable/success" />
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/indicateToggleBtn"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-        <Button
-            android:minWidth="125dp"
-            android:id="@+id/indicateToggleBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Toggle" />
-    </LinearLayout>
+        android:text="Toggle Indicate" />
 </LinearLayout>
