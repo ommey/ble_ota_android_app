@@ -10,8 +10,10 @@ import android.bluetooth.BluetoothGattService
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.widget.ExpandableListView
 import android.widget.ImageView
+import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.bl_ota.ble.ConnectionManager
+import com.example.bl_ota.ui.adapters.FeatureListAdapter
 
 class ServiceControlActivity : AppCompatActivity() {
 
@@ -171,6 +174,21 @@ class ServiceControlActivity : AppCompatActivity() {
                 val adapter = ExpandableServiceListAdapter(this, serviceData)
                 expandableListView.setAdapter(adapter)
 
+                val matchedFeatures = featureCatalog.filter { feature ->
+                    feature.serviceUUIDs.all { uuid -> gatt.services.any { it.uuid == uuid } } &&
+                            feature.characteristicUUIDs.all { uuid ->
+                                gatt.services.any { service -> service.characteristics.any { it.uuid == uuid } }
+                            }
+                }
+
+                val featureListView = findViewById<ListView>(R.id.feature_list_view)
+                if (matchedFeatures.isNotEmpty()) {
+                    val adapter = FeatureListAdapter(this, matchedFeatures, gatt)
+                    featureListView.adapter = adapter
+                    featureListView.visibility = View.VISIBLE
+                } else {
+                    featureListView.visibility = View.GONE
+                }
 
 
             }
