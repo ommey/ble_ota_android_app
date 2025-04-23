@@ -1,11 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/writeBlock"
+android:id="@+id/writeBlock"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="vertical"
+android:padding="8dp"
+android:gravity="center_vertical">
+
+<!-- Top Row: Text Block (left) + Icon (right) -->
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="8dp"
+    android:gravity="center_vertical"
+    android:paddingBottom="4dp">
+
+    <!-- Text Column -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/characteristicTypeTextview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAllCaps="true"
+            android:text="Write with response"
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/writeResponse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Response appears here"
+            android:textSize="14sp"
+            android:textColor="@color/white"/>
+    </LinearLayout>
+
+    <!-- Icon on Right -->
+    <ImageView
+        android:id="@+id/writeInteractionIcon"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:src="@drawable/success"
+        android:layout_marginStart="8dp"/>
+</LinearLayout>
+
+<!-- EditText + Send Button -->
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
     android:gravity="center_vertical">
 
     <EditText
@@ -19,7 +69,9 @@
 
     <Button
         android:id="@+id/sendWriteBtn"
+        android:minWidth="125dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Send" />
+</LinearLayout>
 </LinearLayout>

@@ -33,18 +33,11 @@
                 android:textColor="@color/white"
                 android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/response"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Response appears here"
-                android:textSize="14sp"
-                android:textColor="@color/white"/>
         </LinearLayout>
 
         <!-- Icon on Right -->
         <ImageView
-            android:id="@+id/interactionIcon"
+            android:id="@+id/WriteNoResponseInteractionIcon"
             android:layout_width="75dp"
             android:layout_height="75dp"
             android:src="@drawable/success"
@@ -68,9 +61,10 @@
             android:inputType="text" />
 
         <Button
+            android:minWidth="125dp"
             android:id="@+id/sendWriteNoRspBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send (No Rsp)" />
+            android:text="Send" />
     </LinearLayout>
 </LinearLayout>
