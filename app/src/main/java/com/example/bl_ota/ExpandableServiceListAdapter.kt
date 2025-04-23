@@ -18,6 +18,8 @@ class ExpandableServiceListAdapter(
 
     private val serviceList = serviceData.keys.toList()
 
+    var expandingGroup: Int? = null
+
     override fun getGroupCount(): Int = serviceList.size
 
     override fun getChildrenCount(groupPosition: Int): Int =
@@ -270,9 +272,9 @@ class ExpandableServiceListAdapter(
                     override fun willChangeBounds(): Boolean = true
                 }
 
-                animation.duration = (initialHeight / capLayout.context.resources.displayMetrics.density).toLong() * 2
+                animation.duration = (initialHeight / capLayout.context.resources.displayMetrics.density).toLong() * 1
                 capLayout.startAnimation(animation)
-                childArrow.animate().rotation(0f).setDuration(200).start()
+                childArrow.animate().rotation(0f).setDuration(500).start()
             } else {
                 // EXPAND
                 capLayout.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
@@ -290,9 +292,9 @@ class ExpandableServiceListAdapter(
                     override fun willChangeBounds(): Boolean = true
                 }
 
-                animation.duration = (targetHeight / capLayout.context.resources.displayMetrics.density).toLong() * 2
+                animation.duration = (targetHeight / capLayout.context.resources.displayMetrics.density).toLong() * 1
                 capLayout.startAnimation(animation)
-                childArrow.animate().rotation(180f).setDuration(200).start()
+                childArrow.animate().rotation(180f).setDuration(500).start()
             }
         }
 
@@ -301,14 +303,16 @@ class ExpandableServiceListAdapter(
         childArrow.rotation = if (capLayout.isVisible) 180f else 0f
 
 
+        if (groupPosition == expandingGroup) {
             view.alpha = 0f
-            view.translationY = -20f
+            view.translationY = -30f
             view.animate()
                 .alpha(1f)
                 .translationY(0f)
-                .setInterpolator(android.view.animation.OvershootInterpolator())
-                .setDuration(500)
+                .setDuration(300)
+                .setStartDelay(childPosition * 75L)
                 .start()
+        }
 
 
         return view

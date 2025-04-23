@@ -175,11 +175,31 @@ class ServiceControlActivity : AppCompatActivity() {
                 expandableListView.setAdapter(adapter)
 
                 val matchedFeatures = featureCatalog.filter { feature ->
-                    feature.serviceUUIDs.all { uuid -> gatt.services.any { it.uuid == uuid } } &&
-                            feature.characteristicUUIDs.all { uuid ->
-                                gatt.services.any { service -> service.characteristics.any { it.uuid == uuid } }
-                            }
+                    val services = gatt.services
+                    val allCharacteristics = services.flatMap { it.characteristics }
+
+                    val serviceMatch = if (feature.matchAllServiceUUIDs) {
+                        feature.serviceUUIDs.all { uuid -> services.any { it.uuid == uuid } }
+                    } else {
+                        feature.serviceUUIDs.any { uuid -> services.any { it.uuid == uuid } }
+                    }
+
+                    val charMatch = if (feature.matchAllCharacteristicUUIDs) {
+                        feature.characteristicUUIDs.all { uuid -> allCharacteristics.any { it.uuid == uuid } }
+                    } else {
+                        feature.characteristicUUIDs.any { uuid -> allCharacteristics.any { it.uuid == uuid } }
+                    }
+
+                    serviceMatch && charMatch
                 }
+
+
+
+                expandableListView.setOnGroupExpandListener { groupPosition ->
+                    adapter.expandingGroup = groupPosition
+                    adapter.notifyDataSetChanged()
+                }
+
 
                 val featureExpandableList = findViewById<ExpandableListView>(R.id.feature_expandable_list)
                 if (matchedFeatures.isNotEmpty()) {

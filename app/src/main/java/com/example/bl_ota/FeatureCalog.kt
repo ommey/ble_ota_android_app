@@ -8,25 +8,32 @@ import com.example.bl_ota.R
 import com.example.bl_ota.DiscoveredFeature
 import java.util.*
 
+import java.util.UUID
+
 val featureCatalog = listOf(
+    // STM OTA: needs all service UUIDs
     DiscoveredFeature(
         name = "STM OTA",
-        serviceUUIDs = listOf(UUID.fromString("0000FE20-cc7a-482a-984a-7f2ed5b3e58f")),
-        characteristicUUIDs = listOf(UUID.fromString("000FE22-8e22-4541-9d4c-21edae82ed19"),
-            UUID.fromString("0000FE23-8e22-4541-9d4c-21edae82ed19"),
-            UUID.fromString("0000FE24-8e22-4541-9d4c-21edae82ed19")),
         layoutResId = R.layout.feature_stm_ota,
-        binder = { view, gatt ->
-            val button = view.findViewById<Button>(R.id.startUpdateButton)
-            val progressBar = view.findViewById<ProgressBar>(R.id.updateProgressBar)
-            val statusText = view.findViewById<TextView>(R.id.statusTextView)
+        serviceUUIDs = listOf(UUID.fromString("0000FE20-cc7a-482a-984a-7f2ed5b3e58f")),
+        characteristicUUIDs = listOf(
+            UUID.fromString("000FE22-8e22-4541-9d4c-21edae82ed19"),
+            UUID.fromString("000FE23-8e22-4541-9d4c-21edae82ed19"),
+            UUID.fromString("000FE24-8e22-4541-9d4c-21edae82ed19")),
+        matchAllServiceUUIDs = true,
+        matchAllCharacteristicUUIDs = true,
+        binder = { view, gatt -> /* your logic */ }
+    ),
 
-            button.setOnClickListener {
-                statusText.text = "Starting update..."
-                progressBar.visibility = View.VISIBLE
-                // Insert your OTA logic here
-            }
-        }
+    // Reboot Request: only one characteristic needed
+    DiscoveredFeature(
+        name = "Reboot Request",
+        layoutResId = R.layout.feature_reboot_request,
+        serviceUUIDs = emptyList(),
+        characteristicUUIDs = listOf(UUID.fromString("0000FE11-8e22-4541-9d4c-21edae82ed19")),
+        matchAllServiceUUIDs = true,
+        matchAllCharacteristicUUIDs = true,
+        binder = { view, gatt -> /* reboot logic */ }
     )
-    // Add more known features here...
 )
+
