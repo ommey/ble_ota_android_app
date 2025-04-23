@@ -217,12 +217,34 @@ class ExpandableServiceListAdapter(
 
         if ((props and BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0) {
             val indicateBlock = inflater.inflate(R.layout.indicate_block, capLayout, false)
-            indicateBlock.findViewById<Button>(R.id.indicateToggleBtn).setOnClickListener {
-                ConnectionManager.toggleIndications(characteristic)
-                Toast.makeText(context, "Indicate toggled", Toast.LENGTH_SHORT).show()
+            val statusText = indicateBlock.findViewById<TextView>(R.id.indicateStatusTextView)
+            val icon = indicateBlock.findViewById<ImageView>(R.id.indicateInteractionIcon)
+            val toggleSwitch = indicateBlock.findViewById<Switch>(R.id.indicateToggleSwitch)
+
+            var lastTime = System.currentTimeMillis()
+
+            toggleSwitch.setOnCheckedChangeListener { _, isChecked ->
+                ConnectionManager.toggleIndications(characteristic, isChecked)
+                lastTime = System.currentTimeMillis()
+                statusText.text = if (isChecked) "Indications on" else "Indications off"
+                icon.setImageResource(R.drawable.success)
+
+                if (isChecked) {
+                    ConnectionManager.indicationViewMap[characteristic.uuid] =
+                        Triple(statusText, icon) {
+                            val now = System.currentTimeMillis()
+                            val diff = now - lastTime
+                            lastTime = now
+                            diff
+                        }
+                } else {
+                    ConnectionManager.indicationViewMap.remove(characteristic.uuid)
+                }
             }
+
             capLayout.addView(indicateBlock)
         }
+
 
         view.setOnClickListener {
             val isVisible = capLayout.isVisible

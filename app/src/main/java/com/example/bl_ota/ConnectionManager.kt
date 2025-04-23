@@ -38,6 +38,7 @@ object ConnectionManager {
     var onCharacteristicRead: ((BluetoothGattCharacteristic, ByteArray?, Boolean) -> Unit)? = null
     val pendingReadMap = mutableMapOf<UUID, Pair<TextView, ImageView>>()
     val notificationViewMap = mutableMapOf<UUID, Triple<TextView, ImageView, () -> Int>>() // includes counter function
+    val indicationViewMap = mutableMapOf<UUID, Triple<TextView, ImageView, () -> Long>>()
 
 
     private val gattCallback = object : BluetoothGattCallback() {
@@ -110,21 +111,22 @@ object ConnectionManager {
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-            val triple = notificationViewMap[characteristic.uuid] ?: return
-            val (statusText, icon, incrementCounter) = triple
+            val viewSet = notificationViewMap[characteristic.uuid] ?: indicationViewMap[characteristic.uuid] ?: return
+            val (statusText, icon, getDiff) = viewSet
 
-            val count = incrementCounter()
-            val time = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+            val sinceLast = getDiff()
+            val nowStr = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
 
             Handler(Looper.getMainLooper()).post {
                 icon.setImageResource(R.drawable.response)
-                statusText.text = "Last at: $time\nTotal: $count"
+                statusText.text = "Last at: $nowStr\nΔ ${sinceLast}ms"
 
                 Handler(Looper.getMainLooper()).postDelayed({
                     icon.setImageResource(R.drawable.success)
                 }, 200)
             }
         }
+
 
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
@@ -202,9 +204,20 @@ object ConnectionManager {
         gatt.writeDescriptor(descriptor)
     }
 
-    fun toggleIndications(characteristic: BluetoothGattCharacteristic) {
+    @SuppressLint("MissingPermission")
+    fun toggleIndications(characteristic: BluetoothGattCharacteristic, enable: Boolean) {
+        val gatt = bluetoothGatt ?: return
+        gatt.setCharacteristicNotification(characteristic, enable)
 
+        val descriptor = characteristic.getDescriptor(UUID.fromString(CCC_DESCRIPTOR_UUID)) ?: return
+        descriptor.value = if (enable)
+            BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
+        else
+            BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+
+        gatt.writeDescriptor(descriptor)
     }
+
 
 
 }
