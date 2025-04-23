@@ -178,20 +178,14 @@ class ServiceControlActivity : AppCompatActivity() {
                     val services = gatt.services
                     val allCharacteristics = services.flatMap { it.characteristics }
 
-                    val serviceMatch = if (feature.matchAllServiceUUIDs) {
-                        feature.serviceUUIDs.all { uuid -> services.any { it.uuid == uuid } }
-                    } else {
-                        feature.serviceUUIDs.any { uuid -> services.any { it.uuid == uuid } }
+                    val hasAllServices = feature.serviceUUIDs.all { uuid -> services.any { it.uuid == uuid } }
+                    val hasAllCharacteristics = feature.characteristicUUIDs.all { uuid ->
+                        allCharacteristics.any { it.uuid == uuid }
                     }
 
-                    val charMatch = if (feature.matchAllCharacteristicUUIDs) {
-                        feature.characteristicUUIDs.all { uuid -> allCharacteristics.any { it.uuid == uuid } }
-                    } else {
-                        feature.characteristicUUIDs.any { uuid -> allCharacteristics.any { it.uuid == uuid } }
-                    }
-
-                    serviceMatch && charMatch
+                    hasAllServices && hasAllCharacteristics
                 }
+
 
 
 

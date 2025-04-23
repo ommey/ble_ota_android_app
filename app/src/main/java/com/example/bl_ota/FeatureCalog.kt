@@ -20,8 +20,6 @@ val featureCatalog = listOf(
             UUID.fromString("000FE22-8e22-4541-9d4c-21edae82ed19"),
             UUID.fromString("000FE23-8e22-4541-9d4c-21edae82ed19"),
             UUID.fromString("000FE24-8e22-4541-9d4c-21edae82ed19")),
-        matchAllServiceUUIDs = true,
-        matchAllCharacteristicUUIDs = true,
         binder = { view, gatt -> /* your logic */ }
     ),
 
@@ -31,8 +29,6 @@ val featureCatalog = listOf(
         layoutResId = R.layout.feature_reboot_request,
         serviceUUIDs = emptyList(),
         characteristicUUIDs = listOf(UUID.fromString("0000FE11-8e22-4541-9d4c-21edae82ed19")),
-        matchAllServiceUUIDs = true,
-        matchAllCharacteristicUUIDs = true,
         binder = { view, gatt -> /* reboot logic */ }
     )
 )
