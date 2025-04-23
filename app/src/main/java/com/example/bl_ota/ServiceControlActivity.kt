@@ -69,6 +69,7 @@ class ServiceControlActivity : AppCompatActivity() {
 
         val serviceUUIDHeader = findViewById<TextView>(R.id.ServiceUUIDHeadTextView)
         val devicenametextview : TextView = findViewById<TextView>(R.id.DeviceNameTextView)
+        val amountServicesCharacteristic : TextView = findViewById<TextView>(R.id.AmountServicesChararacteristicsTextview)
 
         val expandableListView = findViewById<ExpandableListView>(R.id.expandable_service_list)
         ViewCompat.setOnApplyWindowInsetsListener(expandableListView) { view, insets ->
@@ -111,7 +112,11 @@ class ServiceControlActivity : AppCompatActivity() {
 //                serviceUUIDHeader.text = "Available Services:\n${serviceUUIDs.count()}"
 
                 val serviceCount = gatt.services.size
+                val characteristicCount = gatt.services.sumOf { it.characteristics.size }
+
                 serviceUUIDHeader.text = "Service UUID:s ($serviceCount)"
+                amountServicesCharacteristic.text = "Advertising $serviceCount services and $characteristicCount characteristics"
+
 
                 val adapter = ExpandableServiceListAdapter(this, serviceData)
                 expandableListView.setAdapter(adapter)
