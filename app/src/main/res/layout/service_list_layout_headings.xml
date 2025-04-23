@@ -13,6 +13,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/DeviceNameTextView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1.2"
@@ -72,6 +73,7 @@
 
 
             <TextView
+                android:id="@+id/RSSIValueTextview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:textSize="25sp"
@@ -113,6 +115,7 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="MissingConstraints">
                 <TextView
+                    android:id="@+id/MTUValTextview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:textSize="25dp"

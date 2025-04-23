@@ -28,6 +28,8 @@ class LoginActivity : AppCompatActivity() {
         val loginButton = findViewById<Button>(R.id.LoginButton)
 
         loginButton.setOnClickListener{
+
+            //TODO: validera inlogg
             val loginIntent = Intent(this, OptionsActivity::class.java)
             startActivity(loginIntent)
         }

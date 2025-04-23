@@ -8,7 +8,10 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.ExpandableListView
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +23,18 @@ import com.example.bl_ota.ble.ConnectionManager
 
 class ServiceControlActivity : AppCompatActivity() {
 
+    private val rssiHandler = Handler(Looper.getMainLooper())
+    private val rssiUpdateInterval: Long = 2000
+
+    private val rssiUpdateRunnable = object : Runnable {
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+        override fun run() {
+            ConnectionManager.bluetoothGatt?.readRemoteRssi()
+            rssiHandler.postDelayed(this, rssiUpdateInterval)
+        }
+    }
+
+
     private lateinit var bluetoothDevice: BluetoothDevice
     private lateinit var deviceInfoTextView: TextView
 
@@ -29,14 +44,39 @@ class ServiceControlActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_service_control)
 
+        val rssiValueTextView = findViewById<TextView>(R.id.RSSIValueTextview)
+        val rssiBarsImage = findViewById<ImageView>(R.id.BarsImageView)
+
+        ConnectionManager.onRssiRead = { rssi ->
+            runOnUiThread {
+                rssiValueTextView.text = "$rssi"
+                rssiBarsImage.setImageResource(getSignalStrengthDrawable(rssi))
+            }
+        }
+
+        rssiHandler.post(rssiUpdateRunnable)
+
+        val mtuValueTextView = findViewById<TextView>(R.id.MTUValTextview)
+        val mtuImageView = findViewById<ImageView>(R.id.MTUImage)
+
+        ConnectionManager.onMtuChanged = { mtu ->
+            runOnUiThread {
+                mtuValueTextView.text = "$mtu bytes"
+                // optionally: change MTU image here if you want visual feedback
+            }
+        }
+
+
         val serviceUUIDHeader = findViewById<TextView>(R.id.ServiceUUIDHeadTextView)
+        val devicenametextview : TextView = findViewById<TextView>(R.id.DeviceNameTextView)
 
         val expandableListView = findViewById<ExpandableListView>(R.id.expandable_service_list)
-        ViewCompat.setOnApplyWindowInsetsListener(expandableListView) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        ViewCompat.setOnApplyWindowInsetsListener(expandableListView) { view, insets ->
+            val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemInsets.left, systemInsets.top, systemInsets.right, systemInsets.bottom)
+            WindowInsetsCompat.CONSUMED
         }
+
 
         val serviceData: MutableMap<BluetoothGattService, List<BluetoothGattCharacteristic>> = LinkedHashMap()
 
@@ -47,6 +87,7 @@ class ServiceControlActivity : AppCompatActivity() {
             finish()
             return
         }
+
 
         val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         val bluetoothAdapter = bluetoothManager.adapter
@@ -80,25 +121,42 @@ class ServiceControlActivity : AppCompatActivity() {
             }
         }
 
+
         //  info
         ConnectionManager.onConnectionStateChange = {
             runOnUiThread {
                 if (ConnectionManager.connected) {
                     Toast.makeText(this, "Connected to ${ConnectionManager.bluetoothGatt?.device?.name}", Toast.LENGTH_SHORT).show()
+                    devicenametextview.text = bluetoothDevice.name?.toString()
                 } else {
                     Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show()
+                    devicenametextview.text = bluetoothDevice.name?.toString()
                 }
             }
         }
 
     }
 
+
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onDestroy() {
         super.onDestroy()
+        ConnectionManager.onMtuChanged = null
+        rssiHandler.removeCallbacks(rssiUpdateRunnable)
+        ConnectionManager.onRssiRead = null
         ConnectionManager.bluetoothGatt?.close()
         ConnectionManager.bluetoothGatt = null
         ConnectionManager.onServicesDiscovered = null
         ConnectionManager.onConnectionStateChange = null
+    }
+
+}
+private fun getSignalStrengthDrawable(rssi: Int): Int {
+    return when {
+        rssi > -60 -> R.drawable.four_bars
+        rssi > -70 -> R.drawable.three_bars
+        rssi > -80 -> R.drawable.two_bars
+        rssi > -90 -> R.drawable.one_bars
+        else -> R.drawable.no_bars
     }
 }

@@ -26,7 +26,10 @@ object ConnectionManager {
     var bluetoothGatt: BluetoothGatt? = null
     var onServicesDiscovered: ((BluetoothGatt) -> Unit)? = null
     var onConnectionStateChange: ((BluetoothGatt) -> Unit)? = null
+    var onRssiRead: ((Int) -> Unit)? = null
     var connected: Boolean = false
+    var onMtuChanged: ((Int) -> Unit)? = null
+
 
     private val gattCallback = object : BluetoothGattCallback() {
         @SuppressLint("MissingPermission")
@@ -62,10 +65,17 @@ object ConnectionManager {
             signalEndOfOperation()
         }
 
+        override fun onReadRemoteRssi(gatt: BluetoothGatt?, rssi: Int, status: Int) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                onRssiRead?.invoke(rssi)
+            }
+        }
+
         @SuppressLint("MissingPermission")
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
             Log.i("GattCallback", "ATT MTU changed to $mtu, success: ${status == BluetoothGatt.GATT_SUCCESS}")
             Handler(Looper.getMainLooper()).post {
+                onMtuChanged?.invoke(mtu)
                 gatt.discoverServices()
             }
         }
