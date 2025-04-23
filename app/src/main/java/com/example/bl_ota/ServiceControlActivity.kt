@@ -22,7 +22,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.bl_ota.ble.ConnectionManager
+import com.example.bl_ota.ui.adapters.FeatureExpandableAdapter
 import com.example.bl_ota.ui.adapters.FeatureListAdapter
+import com.example.bl_ota.util.featureCatalog
 
 class ServiceControlActivity : AppCompatActivity() {
 
@@ -70,7 +72,6 @@ class ServiceControlActivity : AppCompatActivity() {
         }
 
 
-        val serviceUUIDHeader = findViewById<TextView>(R.id.ServiceUUIDHeadTextView)
         val devicenametextview : TextView = findViewById<TextView>(R.id.DeviceNameTextView)
         val amountServicesCharacteristic : TextView = findViewById<TextView>(R.id.AmountServicesChararacteristicsTextview)
 
@@ -167,7 +168,6 @@ class ServiceControlActivity : AppCompatActivity() {
                 val serviceCount = gatt.services.size
                 val characteristicCount = gatt.services.sumOf { it.characteristics.size }
 
-                serviceUUIDHeader.text = "Service UUID:s ($serviceCount)"
                 amountServicesCharacteristic.text = "Advertising $serviceCount services and $characteristicCount characteristics"
 
 
@@ -181,13 +181,13 @@ class ServiceControlActivity : AppCompatActivity() {
                             }
                 }
 
-                val featureListView = findViewById<ListView>(R.id.feature_list_view)
+                val featureExpandableList = findViewById<ExpandableListView>(R.id.feature_expandable_list)
                 if (matchedFeatures.isNotEmpty()) {
-                    val adapter = FeatureListAdapter(this, matchedFeatures, gatt)
-                    featureListView.adapter = adapter
-                    featureListView.visibility = View.VISIBLE
+                    val featureAdapter = FeatureExpandableAdapter(this, gatt, matchedFeatures)
+                    featureExpandableList.setAdapter(featureAdapter)
+                    featureExpandableList.visibility = View.VISIBLE
                 } else {
-                    featureListView.visibility = View.GONE
+                    featureExpandableList.visibility = View.GONE
                 }
 
 

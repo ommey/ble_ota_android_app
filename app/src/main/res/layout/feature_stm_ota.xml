@@ -1,8 +1,10 @@
+<!-- feature_stm_ota.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:layout_height="100dp"
+    android:padding="8dp"
+    android:layout_toEndOf="@+id/expandable_service_list">
 
     <TextView
         android:id="@+id/statusTextView"

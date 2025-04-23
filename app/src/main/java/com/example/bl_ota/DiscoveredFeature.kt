@@ -2,7 +2,6 @@ package com.example.bl_ota
 
 import android.bluetooth.BluetoothGatt
 import android.view.View
-
 import java.util.*
 
 data class DiscoveredFeature(
@@ -12,4 +11,3 @@ data class DiscoveredFeature(
     val layoutResId: Int,
     val binder: (View, BluetoothGatt) -> Unit
 )
-

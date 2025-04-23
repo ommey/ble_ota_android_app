@@ -1,4 +1,4 @@
-package com.example.bl_ota
+package com.example.bl_ota.util
 
 import android.view.View
 import android.widget.Button
@@ -14,7 +14,7 @@ val featureCatalog = listOf(
         serviceUUIDs = listOf(UUID.fromString("0000FE20-cc7a-482a-984a-7f2ed5b3e58f")),
         characteristicUUIDs = listOf(UUID.fromString("000FE22-8e22-4541-9d4c-21edae82ed19"),
             UUID.fromString("0000FE23-8e22-4541-9d4c-21edae82ed19"),
-                    UUID.fromString("0000FE24-8e22-4541-9d4c-21edae82ed19")),
+            UUID.fromString("0000FE24-8e22-4541-9d4c-21edae82ed19")),
         layoutResId = R.layout.feature_stm_ota,
         binder = { view, gatt ->
             val button = view.findViewById<Button>(R.id.startUpdateButton)
@@ -30,4 +30,3 @@ val featureCatalog = listOf(
     )
     // Add more known features here...
 )
-
