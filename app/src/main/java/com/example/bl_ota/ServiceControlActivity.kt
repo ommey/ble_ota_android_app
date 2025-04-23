@@ -77,6 +77,36 @@ class ServiceControlActivity : AppCompatActivity() {
             view.setPadding(systemInsets.left, systemInsets.top, systemInsets.right, systemInsets.bottom)
             WindowInsetsCompat.CONSUMED
         }
+        ConnectionManager.onCharacteristicRead = { characteristic, value, success ->
+            runOnUiThread {
+                val (statusText, icon) = ConnectionManager.pendingReadMap.remove(characteristic.uuid) ?: return@runOnUiThread
+
+                icon.animate().cancel()
+                icon.rotation = 0f
+
+                if (success && value != null) {
+                    icon.setImageResource(R.drawable.success)
+
+                    val hex = value.joinToString(" ") { "0x%02X".format(it) }
+                    val text = try {
+                        val decoded = value.toString(Charsets.UTF_8)
+                        if (decoded.all { it.isISOControl() }) null else decoded // avoid showing junk
+                    } catch (e: Exception) {
+                        null
+                    }
+
+                    statusText.text = buildString {
+                        append("Hex: $hex")
+                        if (!text.isNullOrBlank()) append("\nText: $text")
+                    }
+
+                } else {
+                    icon.setImageResource(R.drawable.fail)
+                    statusText.text = "Read failed"
+                }
+            }
+        }
+
 
         ConnectionManager.onCharacteristicWrite = { characteristic, success ->
             runOnUiThread {
