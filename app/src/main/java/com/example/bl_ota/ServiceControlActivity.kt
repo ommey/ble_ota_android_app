@@ -78,6 +78,26 @@ class ServiceControlActivity : AppCompatActivity() {
             WindowInsetsCompat.CONSUMED
         }
 
+        ConnectionManager.onCharacteristicWrite = { characteristic, success ->
+            runOnUiThread {
+                val uuid = characteristic.uuid
+                val lastSent = ConnectionManager.pendingWriteMap.remove(uuid) ?: "(unknown)"
+                val (statusText, icon) = ConnectionManager.pendingViewMap.remove(uuid) ?: return@runOnUiThread
+
+                icon.animate().cancel()
+                icon.rotation = 0f
+
+                if (success) {
+                    icon.setImageResource(R.drawable.response)
+                    statusText.text = "Sent: $lastSent"
+                } else {
+                    icon.setImageResource(R.drawable.no_response)
+                    statusText.text = "Not confirmed : $lastSent"
+                }
+            }
+        }
+
+
 
         val serviceData: MutableMap<BluetoothGattService, List<BluetoothGattCharacteristic>> = LinkedHashMap()
 

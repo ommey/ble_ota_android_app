@@ -6,13 +6,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseExpandableListAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.core.view.isVisible
 import com.example.bl_ota.ble.ConnectionManager
 
@@ -25,15 +19,13 @@ class ExpandableServiceListAdapter(
 
     override fun getGroupCount(): Int = serviceList.size
 
-    override fun getChildrenCount(groupPosition: Int): Int {
-        return serviceData[serviceList[groupPosition]]?.size ?: 0
-    }
+    override fun getChildrenCount(groupPosition: Int): Int =
+        serviceData[serviceList[groupPosition]]?.size ?: 0
 
     override fun getGroup(groupPosition: Int): Any = serviceList[groupPosition]
 
-    override fun getChild(groupPosition: Int, childPosition: Int): Any {
-        return serviceData[serviceList[groupPosition]]?.get(childPosition) ?: ""
-    }
+    override fun getChild(groupPosition: Int, childPosition: Int): Any =
+        serviceData[serviceList[groupPosition]]?.get(childPosition) ?: ""
 
     override fun getGroupId(groupPosition: Int): Long = groupPosition.toLong()
 
@@ -53,16 +45,10 @@ class ExpandableServiceListAdapter(
             .inflate(R.layout.layout_group, parent, false)
 
         val service = getGroup(groupPosition) as BluetoothGattService
-
-        val serviceTextView = view.findViewById<TextView>(R.id.serviceUUIDTextView)
-        serviceTextView.text = service.uuid.toString()
-        serviceTextView.isSelected = true
-        val expandArrow = view.findViewById<ImageView>(R.id.expandArrow)
-        val aliasTextView = view.findViewById<TextView>(R.id.customAliasTextView)
-        aliasTextView.text = "" // Set alias if needed
-        aliasTextView.isSelected = true
-
-        expandArrow.animate().rotation(if (isExpanded) 180f else 0f).setDuration(200).start()
+        view.findViewById<TextView>(R.id.serviceUUIDTextView).text = service.uuid.toString()
+        view.findViewById<TextView>(R.id.customAliasTextView).text = ""
+        view.findViewById<ImageView>(R.id.expandArrow).animate()
+            .rotation(if (isExpanded) 180f else 0f).setDuration(200).start()
 
         return view
     }
@@ -82,106 +68,139 @@ class ExpandableServiceListAdapter(
 
         val characteristic = getChild(groupPosition, childPosition) as BluetoothGattCharacteristic
 
-        val charTextView = view.findViewById<TextView>(R.id.characteristicUUIDTextView)
-        val aliasTextView = view.findViewById<TextView>(R.id.customAliasTextView)
         val capLayout = view.findViewById<LinearLayout>(R.id.capabilityLayout)
         val childArrow = view.findViewById<ImageView>(R.id.childArrow)
 
-        charTextView.text = characteristic.uuid.toString()
-        aliasTextView.text = ""
-        charTextView.isSelected = true
-        aliasTextView.isSelected = true
-
-        // Capabilities info
-        val read = (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_READ) != 0
-        val write = (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
-        val notify = (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0
-        val indicate = (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0
+        view.findViewById<TextView>(R.id.characteristicUUIDTextView).text = characteristic.uuid.toString()
+        view.findViewById<TextView>(R.id.customAliasTextView).text = ""
 
         capLayout.removeAllViews()
 
-        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
-            val readBlock = inflater.inflate(R.layout.read_block, capLayout, false)
-            val readBtn = readBlock.findViewById<Button>(R.id.readBtn)
-            val output = readBlock.findViewById<TextView>(R.id.readOutput)
+        val props = characteristic.properties
 
-            readBtn.setOnClickListener {
+        if ((props and BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
+            val readBlock = inflater.inflate(R.layout.read_block, capLayout, false)
+            readBlock.findViewById<Button>(R.id.readBtn).setOnClickListener {
                 ConnectionManager.readCharacteristic(characteristic)
                 Toast.makeText(context, "Reading...", Toast.LENGTH_SHORT).show()
             }
-
             capLayout.addView(readBlock)
         }
 
-        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
+        if ((props and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
             val writeBlock = inflater.inflate(R.layout.write_block, capLayout, false)
             val input = writeBlock.findViewById<EditText>(R.id.writeInput)
             val sendBtn = writeBlock.findViewById<Button>(R.id.sendWriteBtn)
+            val statusText = writeBlock.findViewById<TextView>(R.id.writeResponse)
+            val icon = writeBlock.findViewById<ImageView>(R.id.writeInteractionIcon)
 
             sendBtn.setOnClickListener {
-                val text = input.text.toString()
-                val bytes = text.toByteArray()
+                val text = input.text.toString().trim()
+                input.text.clear()
+
+                val bytes: ByteArray? = try {
+                    when {
+                        text.startsWith("0x", true) -> text.removePrefix("0x").chunked(2)
+                            .map { it.toInt(16).toByte() }.toByteArray()
+                        text.startsWith("0b", true) -> text.removePrefix("0b").chunked(8)
+                            .map { it.toInt(2).toByte() }.toByteArray()
+                        else -> text.toByteArray(Charsets.UTF_8)
+                    }
+                } catch (e: Exception) {
+                    icon.setImageResource(R.drawable.fail)
+                    statusText.text = "Failed to send: invalid input"
+                    return@setOnClickListener
+                }
+
+                if (bytes == null || bytes.isEmpty()) {
+                    icon.setImageResource(R.drawable.fail)
+                    statusText.text = "Failed to send: empty input"
+                    return@setOnClickListener
+                }
+
+                icon.setImageResource(R.drawable.cog)
+                icon.rotation = 0f
+                icon.animate().rotationBy(360f).setDuration(600).withEndAction {
+                    icon.animate().rotationBy(360f).setDuration(600).start()
+                }.start()
+
+                ConnectionManager.pendingWriteMap[characteristic.uuid] = text
+                ConnectionManager.pendingViewMap[characteristic.uuid] = statusText to icon
+
+                characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
                 characteristic.value = bytes
                 ConnectionManager.writeCharacteristic(characteristic)
-                Toast.makeText(context, "Sent: $text", Toast.LENGTH_SHORT).show()
             }
 
             capLayout.addView(writeBlock)
         }
 
-        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
+        if ((props and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
+            val writeNoRspBlock = inflater.inflate(R.layout.write_no_response_block, capLayout, false)
+            val input = writeNoRspBlock.findViewById<EditText>(R.id.writeNoRspInput)
+            val sendBtn = writeNoRspBlock.findViewById<Button>(R.id.sendWriteNoRspBtn)
+            val statusText = writeNoRspBlock.findViewById<TextView>(R.id.writeNoRspStatus)
+            val icon = writeNoRspBlock.findViewById<ImageView>(R.id.writeNoRspInteractionIcon)
+
+            sendBtn.setOnClickListener {
+                val text = input.text.toString().trim()
+                input.text.clear()
+
+                val bytes: ByteArray? = try {
+                    when {
+                        text.startsWith("0x", true) -> text.removePrefix("0x").chunked(2)
+                            .map { it.toInt(16).toByte() }.toByteArray()
+                        text.startsWith("0b", true) -> text.removePrefix("0b").chunked(8)
+                            .map { it.toInt(2).toByte() }.toByteArray()
+                        else -> text.toByteArray(Charsets.UTF_8)
+                    }
+                } catch (e: Exception) {
+                    icon.setImageResource(R.drawable.fail)
+                    statusText.text = "Failed to send: invalid input"
+                    return@setOnClickListener
+                }
+
+                if (bytes == null || bytes.isEmpty()) {
+                    icon.setImageResource(R.drawable.fail)
+                    statusText.text = "Failed to send: empty input"
+                    return@setOnClickListener
+                }
+
+                characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                characteristic.value = bytes
+                ConnectionManager.writeCharacteristic(characteristic)
+
+                icon.setImageResource(R.drawable.success)
+                statusText.text = "Sent: $text"
+            }
+
+            capLayout.addView(writeNoRspBlock)
+        }
+
+        if ((props and BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
             val notifyBlock = inflater.inflate(R.layout.notify_block, capLayout, false)
-            val notifyBtn = notifyBlock.findViewById<Button>(R.id.notifyToggleBtn)
-            notifyBtn.setOnClickListener {
+            notifyBlock.findViewById<Button>(R.id.notifyToggleBtn).setOnClickListener {
                 ConnectionManager.toggleNotifications(characteristic)
                 Toast.makeText(context, "Notify toggled", Toast.LENGTH_SHORT).show()
             }
             capLayout.addView(notifyBlock)
         }
 
-        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0) {
+        if ((props and BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0) {
             val indicateBlock = inflater.inflate(R.layout.indicate_block, capLayout, false)
-            val indicateBtn = indicateBlock.findViewById<Button>(R.id.indicateToggleBtn)
-            indicateBtn.setOnClickListener {
+            indicateBlock.findViewById<Button>(R.id.indicateToggleBtn).setOnClickListener {
                 ConnectionManager.toggleIndications(characteristic)
                 Toast.makeText(context, "Indicate toggled", Toast.LENGTH_SHORT).show()
             }
             capLayout.addView(indicateBlock)
         }
 
-        // Set up toggle behavior
         view.setOnClickListener {
             val isVisible = capLayout.isVisible
-
             capLayout.visibility = if (isVisible) View.GONE else View.VISIBLE
-
-            // Rotate the arrow accordingly
-            childArrow.animate()
-                .rotation(if (isVisible) 0f else 180f)
-                .setDuration(200)
-                .start()
+            childArrow.animate().rotation(if (isVisible) 0f else 180f).setDuration(200).start()
         }
 
-        if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
-            val writeNoRspBlock = inflater.inflate(R.layout.write_no_response_block, capLayout, false)
-            val input = writeNoRspBlock.findViewById<EditText>(R.id.writeNoRspInput)
-            val sendBtn = writeNoRspBlock.findViewById<Button>(R.id.sendWriteNoRspBtn)
-
-            sendBtn.setOnClickListener {
-                val text = input.text.toString()
-                val bytes = text.toByteArray()
-                characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-                characteristic.value = bytes
-                ConnectionManager.writeCharacteristic(characteristic)
-                Toast.makeText(context, "Sent (No Rsp): $text", Toast.LENGTH_SHORT).show()
-            }
-
-            capLayout.addView(writeNoRspBlock)
-        }
-
-
-
-        // Reset arrow rotation when view is reused
         childArrow.rotation = if (capLayout.isVisible) 180f else 0f
 
         return view

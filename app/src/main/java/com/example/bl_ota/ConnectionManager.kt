@@ -8,6 +8,8 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -29,7 +31,9 @@ object ConnectionManager {
     var onRssiRead: ((Int) -> Unit)? = null
     var connected: Boolean = false
     var onMtuChanged: ((Int) -> Unit)? = null
-
+    var onCharacteristicWrite: ((BluetoothGattCharacteristic, Boolean) -> Unit)? = null
+    val pendingWriteMap: MutableMap<UUID, String> = mutableMapOf()
+    val pendingViewMap = mutableMapOf<UUID, Pair<TextView, ImageView>>()
 
     private val gattCallback = object : BluetoothGattCallback() {
         @SuppressLint("MissingPermission")
@@ -64,6 +68,16 @@ object ConnectionManager {
             }
             signalEndOfOperation()
         }
+
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            status: Int
+        ) {
+            val success = status == BluetoothGatt.GATT_SUCCESS
+            onCharacteristicWrite?.invoke(characteristic, success)
+        }
+
 
         override fun onReadRemoteRssi(gatt: BluetoothGatt?, rssi: Int, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
