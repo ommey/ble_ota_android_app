@@ -80,11 +80,24 @@ class ExpandableServiceListAdapter(
 
         if ((props and BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
             val readBlock = inflater.inflate(R.layout.read_block, capLayout, false)
-            readBlock.findViewById<Button>(R.id.readBtn).setOnClickListener {
+            val readBtn = readBlock.findViewById<Button>(R.id.readBtn)
+            val statusText = readBlock.findViewById<TextView>(R.id.readStatusText)
+            val icon = readBlock.findViewById<ImageView>(R.id.readInteractionIcon)
+
+            readBtn.setOnClickListener {
+                // animate
+                icon.setImageResource(R.drawable.cog)
+                icon.rotation = 0f
+                icon.animate().rotationBy(360f).setDuration(600).withEndAction {
+                    icon.animate().rotationBy(360f).setDuration(600).start()
+                }.start()
+
+                statusText.text = "Reading..."
+                ConnectionManager.pendingReadMap[characteristic.uuid] = statusText to icon
                 ConnectionManager.readCharacteristic(characteristic)
-                Toast.makeText(context, "Reading...", Toast.LENGTH_SHORT).show()
             }
             capLayout.addView(readBlock)
+
         }
 
         if ((props and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
@@ -179,11 +192,27 @@ class ExpandableServiceListAdapter(
 
         if ((props and BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
             val notifyBlock = inflater.inflate(R.layout.notify_block, capLayout, false)
-            notifyBlock.findViewById<Button>(R.id.notifyToggleBtn).setOnClickListener {
-                ConnectionManager.toggleNotifications(characteristic)
-                Toast.makeText(context, "Notify toggled", Toast.LENGTH_SHORT).show()
+
+            val statusText = notifyBlock.findViewById<TextView>(R.id.notifyStatusTextView)
+            val icon = notifyBlock.findViewById<ImageView>(R.id.notifyInteractionIcon)
+            val toggleSwitch = notifyBlock.findViewById<Switch>(R.id.notifyToggleSwitch)
+
+            var notifyCount = 0
+
+            toggleSwitch.setOnCheckedChangeListener { _, isChecked ->
+                ConnectionManager.toggleNotifications(characteristic, isChecked)
+                notifyCount = 0
+                statusText.text = if (isChecked) "Notifications on" else "Notifications off"
+                icon.setImageResource(R.drawable.success)
+                if (isChecked) {
+                    ConnectionManager.notificationViewMap[characteristic.uuid] = Triple(statusText, icon) { ++notifyCount }
+                } else {
+                    ConnectionManager.notificationViewMap.remove(characteristic.uuid)
+                }
             }
+
             capLayout.addView(notifyBlock)
+
         }
 
         if ((props and BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0) {

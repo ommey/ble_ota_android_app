@@ -11,6 +11,7 @@ import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import com.example.bl_ota.R
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -34,6 +35,10 @@ object ConnectionManager {
     var onCharacteristicWrite: ((BluetoothGattCharacteristic, Boolean) -> Unit)? = null
     val pendingWriteMap: MutableMap<UUID, String> = mutableMapOf()
     val pendingViewMap = mutableMapOf<UUID, Pair<TextView, ImageView>>()
+    var onCharacteristicRead: ((BluetoothGattCharacteristic, ByteArray?, Boolean) -> Unit)? = null
+    val pendingReadMap = mutableMapOf<UUID, Pair<TextView, ImageView>>()
+    val notificationViewMap = mutableMapOf<UUID, Triple<TextView, ImageView, () -> Int>>() // includes counter function
+
 
     private val gattCallback = object : BluetoothGattCallback() {
         @SuppressLint("MissingPermission")
@@ -69,6 +74,16 @@ object ConnectionManager {
             signalEndOfOperation()
         }
 
+        override fun onCharacteristicRead(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            status: Int
+        ) {
+            val success = status == BluetoothGatt.GATT_SUCCESS
+            onCharacteristicRead?.invoke(characteristic, characteristic.value, success)
+        }
+
+
         override fun onCharacteristicWrite(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic,
@@ -93,6 +108,24 @@ object ConnectionManager {
                 gatt.discoverServices()
             }
         }
+
+        override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
+            val triple = notificationViewMap[characteristic.uuid] ?: return
+            val (statusText, icon, incrementCounter) = triple
+
+            val count = incrementCounter()
+            val time = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+
+            Handler(Looper.getMainLooper()).post {
+                icon.setImageResource(R.drawable.response)
+                statusText.text = "Last at: $time\nTotal: $count"
+
+                Handler(Looper.getMainLooper()).postDelayed({
+                    icon.setImageResource(R.drawable.success)
+                }, 200)
+            }
+        }
+
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -145,14 +178,30 @@ object ConnectionManager {
 
     }
 
+    @SuppressLint("MissingPermission")
     fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
-
+        bluetoothGatt?.readCharacteristic(characteristic)
     }
 
     @SuppressLint("MissingPermission")
     fun writeCharacteristic(characteristic: BluetoothGattCharacteristic) {
         bluetoothGatt?.writeCharacteristic(characteristic)
     }
+
+    @SuppressLint("MissingPermission")
+    fun toggleNotifications(characteristic: BluetoothGattCharacteristic, enable: Boolean) {
+        val gatt = bluetoothGatt ?: return
+        gatt.setCharacteristicNotification(characteristic, enable)
+
+        val descriptor = characteristic.getDescriptor(UUID.fromString(CCC_DESCRIPTOR_UUID)) ?: return
+        descriptor.value = if (enable)
+            BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+        else
+            BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+
+        gatt.writeDescriptor(descriptor)
+    }
+
     fun toggleIndications(characteristic: BluetoothGattCharacteristic) {
 
     }

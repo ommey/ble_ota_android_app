@@ -43,9 +43,10 @@
             android:src="@drawable/success" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/notifyToggleBtn"
+    <Switch
+        android:id="@+id/notifyToggleSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Toggle Notify" />
+        android:text="Notifications"
+        android:textColor="@color/white" />
 </LinearLayout>
