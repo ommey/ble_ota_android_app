@@ -171,6 +171,35 @@ val featureCatalog = listOf(
                 selectedFileTextView.text = "File picker unavailable"
             }
         }
+    ),
+    DiscoveredFeature(
+        name = "Reboot Request",
+        layoutResId = R.layout.feature_reboot_request,
+        characteristicUUIDs = listOf(UUID.fromString(stm_ota_reboot_request_characteristic_uuid)),
+        binder = { view, gatt ->
+            val rebootCharUUID = UUID.fromString(stm_ota_reboot_request_characteristic_uuid)
+            val rebootChar = gatt.services
+                .flatMap { it.characteristics }
+                .find { it.uuid == rebootCharUUID }
+
+            val button = view.findViewById<Button>(R.id.rebootButton)
+            val statusText = view.findViewById<TextView>(R.id.rebootStatusText)
+
+            if (rebootChar == null) {
+                button.isEnabled = false
+                statusText.text = "Characteristic not found"
+                return@DiscoveredFeature
+            }
+
+            button.setOnClickListener {
+                val value = byteArrayOf(0x01, 0x07, 0xFF.toByte()) // 0x0107FF
+                rebootChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                rebootChar.value = value
+                ConnectionManager.writeCharacteristic(rebootChar)
+
+                statusText.text = "Reboot command sent"
+            }
+        }
     )
 )
 

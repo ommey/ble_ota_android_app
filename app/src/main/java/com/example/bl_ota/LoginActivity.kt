@@ -31,8 +31,14 @@ class LoginActivity : AppCompatActivity() {
         }
 
         val loginButton = findViewById<Button>(R.id.LoginButton)
+        val loginFastButton = findViewById<Button>(R.id.LoginFastButton)
         val etUsername = findViewById<EditText>(R.id.UsernameEditText)
         val etPin = findViewById<EditText>(R.id.PinEditText)
+
+        loginFastButton.setOnClickListener{
+            val loginIntent = Intent(this, OptionsActivity::class.java)
+            startMqttConnection("Omar Al Ayoubi", "4321", loginIntent)
+        }
 
         loginButton.setOnClickListener{
             val loginIntent = Intent(this, OptionsActivity::class.java)

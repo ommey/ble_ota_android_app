@@ -49,6 +49,31 @@ class ScanActivity : AppCompatActivity() {
             insets
         }
 
+        @SuppressLint("MissingPermission")
+        fun resetDeviceListAndConnections() {
+            // 1. Stoppa scanning
+            stopBleScan()
+
+            // 2. Töm listan med hittade enheter
+            deviceList.clear()
+            deviceRecycler.adapter?.notifyDataSetChanged()
+
+            // 3. Nollställ alla ConnectionManager callbacks
+            ConnectionManager.bluetoothGatt?.close()
+            ConnectionManager.bluetoothGatt = null
+            ConnectionManager.onConnectionStateChange = null
+            ConnectionManager.onServicesDiscovered = null
+            ConnectionManager.onRssiRead = null
+            ConnectionManager.onCharacteristicWrite = null
+            ConnectionManager.onCharacteristicRead = null
+            ConnectionManager.onMtuChanged = null
+            ConnectionManager.startOtaProcedure = null
+            ConnectionManager.pendingWriteMap.clear()
+            ConnectionManager.pendingReadMap.clear()
+            ConnectionManager.pendingViewMap.clear()
+            ConnectionManager.notificationViewMap.clear()
+            ConnectionManager.indicationViewMap.clear()
+        }
 
 
         bluetoothScanner = BluetoothScanner(this) { result ->
@@ -74,11 +99,6 @@ class ScanActivity : AppCompatActivity() {
             val intent = Intent(this, ServiceControlActivity::class.java)
             intent.putExtra("device_address", selectedDevice.address)
             startActivity(intent)
-//            val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
-//            val bluetoothAdapter = bluetoothManager.adapter
-//            val device = bluetoothAdapter.getRemoteDevice(selectedDevice.address)
-//            ConnectionManager.connectToDevice(this, device)
-            //Log.d("BLE_OTA","Connecting")
         }
 
         val selectedBinaryText = findViewById<TextView>(R.id.selectedBinaryText)
@@ -98,7 +118,9 @@ class ScanActivity : AppCompatActivity() {
             .forEach { it.setOnClickListener { _ -> sortHandler(it) } }
 
         bleSwitch.setOnClickListener {
-            if (isScanning) stopBleScan() else startBleScan()
+            if (isScanning){
+                resetDeviceListAndConnections()
+            } else startBleScan()
         }
 
         filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -118,9 +140,8 @@ class ScanActivity : AppCompatActivity() {
             }
             filePickerLauncher.launch(intent)
         }
+
     }
-
-
 
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
@@ -225,6 +246,4 @@ class ScanActivity : AppCompatActivity() {
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1
     }
-
-
 }

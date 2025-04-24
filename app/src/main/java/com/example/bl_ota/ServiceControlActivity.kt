@@ -1,6 +1,5 @@
 package com.example.bl_ota
 
-import com.example.bl_ota.ExpandableServiceListAdapter
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
@@ -15,7 +14,6 @@ import android.os.Looper
 import android.view.View
 import android.widget.ExpandableListView
 import android.widget.ImageView
-import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -25,20 +23,13 @@ import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.bl_ota.ConnectionManager
-import com.example.bl_ota.FeatureExpandableAdapter
-import com.example.bl_ota.FeatureListAdapter
-import com.example.bl_ota.featureCatalog
 
 class ServiceControlActivity : AppCompatActivity() {
 
     private val rssiHandler = Handler(Looper.getMainLooper())
     private val rssiUpdateInterval: Long = 2000
-
-
     private lateinit var filePickerLauncher: ActivityResultLauncher<Intent>
     private var onFilePickedCallback: ((Uri) -> Unit)? = null
-
 
     private val rssiUpdateRunnable = object : Runnable {
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -47,7 +38,6 @@ class ServiceControlActivity : AppCompatActivity() {
             rssiHandler.postDelayed(this, rssiUpdateInterval)
         }
     }
-
 
     private lateinit var bluetoothDevice: BluetoothDevice
     private lateinit var deviceInfoTextView: TextView
@@ -75,7 +65,6 @@ class ServiceControlActivity : AppCompatActivity() {
                 }
             }
         }
-
 
         rssiHandler.post(rssiUpdateRunnable)
 
@@ -149,8 +138,6 @@ class ServiceControlActivity : AppCompatActivity() {
             }
         }
 
-
-
         val serviceData: MutableMap<BluetoothGattService, List<BluetoothGattCharacteristic>> = LinkedHashMap()
 
         // Hämta device address
@@ -177,12 +164,6 @@ class ServiceControlActivity : AppCompatActivity() {
                     serviceData[service] = service.characteristics
                 }
 
-                // Get a readable list of service UUIDs
-                val serviceUUIDs = gatt.services.joinToString("\n") { it.uuid.toString() }
-
-//                // Now update your header text
-//                serviceUUIDHeader.text = "Available Services:\n${serviceUUIDs.count()}"
-
                 val serviceCount = gatt.services.size
                 val characteristicCount = gatt.services.sumOf { it.characteristics.size }
 
@@ -205,8 +186,6 @@ class ServiceControlActivity : AppCompatActivity() {
                 }
 
 
-
-
                 expandableListView.setOnGroupExpandListener { groupPosition ->
                     adapter.expandingGroup = groupPosition
                     adapter.notifyDataSetChanged()
@@ -221,14 +200,9 @@ class ServiceControlActivity : AppCompatActivity() {
                 } else {
                     featureExpandableList.visibility = View.GONE
                 }
-
-
             }
         }
 
-
-
-        //  info
         ConnectionManager.onConnectionStateChange = {
             runOnUiThread {
                 if (ConnectionManager.connected) {
@@ -240,8 +214,6 @@ class ServiceControlActivity : AppCompatActivity() {
                 }
             }
         }
-
-
     }
 
     fun launchFilePicker(onPicked: (Uri) -> Unit) {
@@ -265,9 +237,8 @@ class ServiceControlActivity : AppCompatActivity() {
         ConnectionManager.onServicesDiscovered = null
         ConnectionManager.onConnectionStateChange = null
     }
-
-
 }
+
 private fun getSignalStrengthDrawable(rssi: Int): Int {
     return when {
         rssi > -60 -> R.drawable.four_bars
