@@ -6,4 +6,15 @@
     <string name="deviceAddress">U/A</string>
     <string name="LastSeen">U/A</string>
     <string name="RSSI">U/A</string>
+    <string name="pin_hint">Pin</string>
+    <string name="user_hint">User</string>
+    <string name="log_in">Log in!</string>
+    <string name="logo">Logo</string>
+    <string name="no_file_selected">No file selected</string>
+    <string name="ready_for_update">Ready for update</string>
+    <string name="start_ota">Start OTA</string>
+    <string name="local_file">Local file</string>
+    <string name="select_local_file">Select Local File</string>
+    <string name="select_cloud_files">Select Cloud Files</string>
+    <string name="cloud_file">Cloud file</string>
 </resources>

@@ -18,7 +18,7 @@ class OptionsActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val scanButton = findViewById<Button>(R.id.ScanButton)
+        val scanButton = findViewById<Button>(R.id.PinEditText)
 
         scanButton.setOnClickListener{
             val scanIntent = Intent( this, ScanActivity::class.java)

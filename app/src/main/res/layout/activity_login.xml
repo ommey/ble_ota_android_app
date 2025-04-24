@@ -12,42 +12,49 @@
         android:id="@+id/ImageIcon"
         android:layout_width="240dp"
         android:layout_height="240dp"
+        android:contentDescription="@string/logo"
         android:src="@drawable/ble_ota1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/ScanButton"
+        app:layout_constraintBottom_toTopOf="@+id/PinEditText"
         android:layout_marginTop="100dp"
         android:layout_marginBottom="40dp"
         />
-    <EditText
-        android:id="@+id/DeviceOptionsButton"
-        android:layout_width="200dp"
-        android:layout_height="50dp"
-        android:text="Username"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/ScanButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="100dp"
-        android:layout_marginBottom="40dp"/>
 
     <EditText
-        android:id="@+id/ScanButton"
+        android:id="@+id/UsernameEditText"
         android:layout_width="200dp"
         android:layout_height="50dp"
-        android:text="Password"
-        app:layout_constraintTop_toBottomOf="@id/DeviceOptionsButton"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="40dp"
+        android:autofillHints="username"
+        android:hint="@string/user_hint"
+        android:inputType="textPersonName"
+        android:textColorHint="#757575"
+        app:layout_constraintBottom_toTopOf="@+id/PinEditText"
         app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/PinEditText"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:autofillHints="pin"
+        android:hint="@string/pin_hint"
+        android:inputType="numberPassword"
+        android:textColorHint="#757575"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/UsernameEditText" />
 
     <Button
         android:id="@+id/LoginButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Log in!"
-        app:layout_constraintTop_toBottomOf="@id/ScanButton"
+        android:text="@string/log_in"
+        app:layout_constraintTop_toBottomOf="@id/PinEditText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="40dp"
