@@ -14,17 +14,22 @@ import java.net.URI
 import java.util.*
 
 import java.util.UUID
+val stm_ota_service_uuid : String = "0000FE20-cc7a-482a-984a-7f2ed5b3e58f"
+val stm_ota_base_address_characteristic_uuid : String = "000FE22-8e22-4541-9d4c-21edae82ed19"
+val stm_ota_file_upload_reboot_confirmation_characteristic_uuid : String = "000FE23-8e22-4541-9d4c-21edae82ed19"
+val stm_ota_ota_raw_data_characteristic_uuid : String = "000FE24-8e22-4541-9d4c-21edae82ed19"
+val stm_ota_reboot_request_characteristic_uuid : String = "0000FE11-8e22-4541-9d4c-21edae82ed19"
 
 val featureCatalog = listOf(
     // STM OTA: needs all service UUIDs
     DiscoveredFeature(
         name = "STM OTA",
         layoutResId = R.layout.feature_stm_ota,
-        serviceUUIDs = listOf(UUID.fromString("0000FE20-cc7a-482a-984a-7f2ed5b3e58f")),
+        serviceUUIDs = listOf(UUID.fromString(stm_ota_service_uuid)),
         characteristicUUIDs = listOf(
-            UUID.fromString("000FE22-8e22-4541-9d4c-21edae82ed19"),
-            UUID.fromString("000FE23-8e22-4541-9d4c-21edae82ed19"),
-            UUID.fromString("000FE24-8e22-4541-9d4c-21edae82ed19")),
+            UUID.fromString(stm_ota_base_address_characteristic_uuid),
+            UUID.fromString(stm_ota_file_upload_reboot_confirmation_characteristic_uuid),
+            UUID.fromString(stm_ota_ota_raw_data_characteristic_uuid)),
         binder = { view, gatt ->
             val statusText = view.findViewById<TextView>(R.id.statusTextView)
             val progressBar = view.findViewById<ProgressBar>(R.id.updateProgressBar)
@@ -51,9 +56,9 @@ val featureCatalog = listOf(
     DiscoveredFeature(
         name = "Reboot Request",
         layoutResId = R.layout.feature_reboot_request,
-        characteristicUUIDs = listOf(UUID.fromString("0000FE11-8e22-4541-9d4c-21edae82ed19")),
+        characteristicUUIDs = listOf(UUID.fromString(stm_ota_reboot_request_characteristic_uuid)),
         binder = { view, gatt ->
-            val rebootCharUUID = UUID.fromString("0000FE11-8e22-4541-9d4c-21edae82ed19")
+            val rebootCharUUID = UUID.fromString(stm_ota_reboot_request_characteristic_uuid)
             val rebootChar = gatt.services
                 .flatMap { it.characteristics }
                 .find { it.uuid == rebootCharUUID }
