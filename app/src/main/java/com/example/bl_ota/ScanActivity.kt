@@ -22,7 +22,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.bl_ota.ble.ConnectionManager
+import com.example.bl_ota.ConnectionManager
 
 class ScanActivity : AppCompatActivity() {
     private lateinit var bluetoothScanner: BluetoothScanner

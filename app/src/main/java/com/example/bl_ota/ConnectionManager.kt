@@ -1,5 +1,5 @@
 // ConnectionManager.kt
-package com.example.bl_ota.ble
+package com.example.bl_ota
 
 import android.annotation.SuppressLint
 import android.bluetooth.*

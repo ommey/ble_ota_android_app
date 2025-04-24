@@ -7,14 +7,26 @@ import android.provider.OpenableColumns
 
 object FilePickerHelper {
     fun getFileNameFromUri(context: Context, uri: Uri): String? {
-        var name: String? = null
-        val cursor: Cursor? = context.contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (it.moveToFirst() && nameIndex != -1) {
-                name = it.getString(nameIndex)
+        var result: String? = null
+        if (uri.scheme == "content") {
+            val cursor: Cursor? = context.contentResolver.query(uri, null, null, null, null)
+            try {
+                cursor?.let {
+                    if (it.moveToFirst()) {
+                        result = it.getString(it.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                    }
+                }
+            } finally {
+                cursor?.close()
             }
         }
-        return name
+        if (result == null) {
+            result = uri.path
+            val cut = result?.lastIndexOf('/') ?: -1
+            if (cut != -1) {
+                result = result?.substring(cut + 1)
+            }
+        }
+        return result
     }
 }

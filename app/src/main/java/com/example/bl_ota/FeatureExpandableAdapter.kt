@@ -1,4 +1,4 @@
-package com.example.bl_ota.ui.adapters
+package com.example.bl_ota
 
 import android.bluetooth.BluetoothGatt
 import android.content.Context

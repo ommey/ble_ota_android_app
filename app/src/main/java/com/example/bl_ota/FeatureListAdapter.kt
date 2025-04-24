@@ -1,4 +1,4 @@
-package com.example.bl_ota.ui.adapters
+package com.example.bl_ota
 
 import android.bluetooth.BluetoothGatt
 import android.content.Context
@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import com.example.bl_ota.DiscoveredFeature
 
 class FeatureListAdapter(
     private val context: Context,

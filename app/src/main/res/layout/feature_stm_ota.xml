@@ -24,4 +24,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
        />
+
+    <TextView
+        android:id="@+id/selectedFileTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No file selected"
+        android:textColor="@color/white"
+        android:paddingTop="8dp" />
+
+    <Button
+        android:id="@+id/selectFileButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select File" />
+
 </LinearLayout>

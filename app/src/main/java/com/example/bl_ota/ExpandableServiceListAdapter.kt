@@ -9,7 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.core.view.isVisible
-import com.example.bl_ota.ble.ConnectionManager
+import com.example.bl_ota.ConnectionManager
 
 class ExpandableServiceListAdapter(
     private val context: Context,

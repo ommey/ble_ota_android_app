@@ -7,6 +7,8 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,19 +19,26 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.bl_ota.ble.ConnectionManager
-import com.example.bl_ota.ui.adapters.FeatureExpandableAdapter
-import com.example.bl_ota.ui.adapters.FeatureListAdapter
-import com.example.bl_ota.util.featureCatalog
+import com.example.bl_ota.ConnectionManager
+import com.example.bl_ota.FeatureExpandableAdapter
+import com.example.bl_ota.FeatureListAdapter
+import com.example.bl_ota.featureCatalog
 
 class ServiceControlActivity : AppCompatActivity() {
 
     private val rssiHandler = Handler(Looper.getMainLooper())
     private val rssiUpdateInterval: Long = 2000
+
+
+    private lateinit var filePickerLauncher: ActivityResultLauncher<Intent>
+    private var onFilePickedCallback: ((Uri) -> Unit)? = null
+
 
     private val rssiUpdateRunnable = object : Runnable {
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -58,6 +67,15 @@ class ServiceControlActivity : AppCompatActivity() {
                 rssiBarsImage.setImageResource(getSignalStrengthDrawable(rssi))
             }
         }
+
+        filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                result.data?.data?.let { uri ->
+                    onFilePickedCallback?.invoke(uri)
+                }
+            }
+        }
+
 
         rssiHandler.post(rssiUpdateRunnable)
 
@@ -209,6 +227,7 @@ class ServiceControlActivity : AppCompatActivity() {
         }
 
 
+
         //  info
         ConnectionManager.onConnectionStateChange = {
             runOnUiThread {
@@ -222,6 +241,16 @@ class ServiceControlActivity : AppCompatActivity() {
             }
         }
 
+
+    }
+
+    fun launchFilePicker(onPicked: (Uri) -> Unit) {
+        onFilePickedCallback = onPicked
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "*/*"
+            addCategory(Intent.CATEGORY_OPENABLE)
+        }
+        filePickerLauncher.launch(intent)
     }
 
 
@@ -236,6 +265,7 @@ class ServiceControlActivity : AppCompatActivity() {
         ConnectionManager.onServicesDiscovered = null
         ConnectionManager.onConnectionStateChange = null
     }
+
 
 }
 private fun getSignalStrengthDrawable(rssi: Int): Int {
