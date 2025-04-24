@@ -21,9 +21,10 @@
 
     <ProgressBar
         android:id="@+id/updateProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-       />
+        android:indeterminate="false" />
 
     <TextView
         android:id="@+id/selectedFileTextView"
