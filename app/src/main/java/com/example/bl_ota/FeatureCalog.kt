@@ -93,45 +93,45 @@ val featureCatalog = listOf(
                             statusText.text = "OTA characteristics not found"
                             return@setOnClickListener
                         }
-                        // Step 3: Enable indication on confirmation characteristic
                         ConnectionManager.enableIndications(confirmationChar)
-                        Thread.sleep(100) // small delay to not overload
 
 
-                        // Step 1: Write base address
-                        baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-                        baseAddressChar.value = byteArrayOf(0x02, 0x00, 0x70, 0x00)
-                        ConnectionManager.writeCharacteristic(baseAddressChar)
-                        Thread.sleep(20) // small delay to not overload
-
-
-                        // Step 2: Send OTA chunks
-                        val chunks = binary.toList().chunked(chunkSize).map { it.toByteArray() }
-                        progressBar.max = chunks.size
-                        progressBar.progress = 0
-
-                        otaDataChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-
-                        Thread {
-                            chunks.forEachIndexed { index, chunk ->
-                                otaDataChar.value = chunk
-                                ConnectionManager.bluetoothGatt?.writeCharacteristic(otaDataChar)
-                                Thread.sleep(40) // small delay to not overload
-                                activity.runOnUiThread {
-                                    progressBar.progress = index + 1
-                                }
-                            }
-
+                        ConnectionManager.startOtaProcedure = {
+                            // Step 1: Write base address
                             baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-                            baseAddressChar.value = byteArrayOf(0x07, 0x00, 0x70, 0x00)
+                            baseAddressChar.value = byteArrayOf(0x02, 0x00, 0x70, 0x00)
                             ConnectionManager.writeCharacteristic(baseAddressChar)
                             Thread.sleep(20) // small delay to not overload
 
 
-                            activity.runOnUiThread {
-                                statusText.text = "Awaiting confirmation..."
-                            }
-                        }.start()
+                            // Step 2: Send OTA chunks
+                            val chunks = binary.toList().chunked(chunkSize).map { it.toByteArray() }
+                            progressBar.max = chunks.size
+                            progressBar.progress = 0
+
+                            otaDataChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+
+                            Thread {
+                                chunks.forEachIndexed { index, chunk ->
+                                    otaDataChar.value = chunk
+                                    ConnectionManager.bluetoothGatt?.writeCharacteristic(otaDataChar)
+                                    Thread.sleep(40) // small delay to not overload
+                                    activity.runOnUiThread {
+                                        progressBar.progress = index + 1
+                                    }
+                                }
+
+                                baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                                baseAddressChar.value = byteArrayOf(0x07, 0x00, 0x70, 0x00)
+                                ConnectionManager.writeCharacteristic(baseAddressChar)
+                                Thread.sleep(20) // small delay to not overload
+
+
+                                activity.runOnUiThread {
+                                    statusText.text = "Awaiting confirmation..."
+                                }
+                            }.start()
+                        }
                     }
                 }
             } else {

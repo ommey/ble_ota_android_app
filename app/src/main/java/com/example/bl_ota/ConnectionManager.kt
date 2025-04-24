@@ -42,6 +42,7 @@ object ConnectionManager {
     val notificationViewMap = mutableMapOf<UUID, Triple<TextView, ImageView, () -> Int>>() // includes counter function
     val indicationViewMap = mutableMapOf<UUID, Triple<TextView, ImageView, () -> Long>>()
     var negotiatedMtu: Int = 23
+    var startOtaProcedure: (() -> Unit)? = null
 
     private val gattCallback = object : BluetoothGattCallback() {
         @SuppressLint("MissingPermission")
@@ -100,6 +101,27 @@ object ConnectionManager {
         override fun onReadRemoteRssi(gatt: BluetoothGatt?, rssi: Int, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 onRssiRead?.invoke(rssi)
+            }
+        }
+
+        override fun onDescriptorWrite(
+            gatt: BluetoothGatt,
+            descriptor: BluetoothGattDescriptor,
+            status: Int
+        ) {
+            val success = status == BluetoothGatt.GATT_SUCCESS
+            Log.i("GattCallback", "Descriptor write completed for ${descriptor.uuid}, success=$success")
+
+            if (descriptor.uuid == UUID.fromString(CCC_DESCRIPTOR_UUID) && success) {
+                val charUUID = descriptor.characteristic.uuid
+                // Kolla om detta är din OTA-confirmation characteristic
+                if (charUUID == stm_ota_file_upload_reboot_confirmation_characteristic_uuid) {
+                    Handler(Looper.getMainLooper()).post {
+                        // Gör det du nu gör EFTER Thread.sleep(100)
+                        // Exempel: kalla vidare på OTA-sekvensen
+                        startOtaProcedure?.invoke()
+                    }
+                }
             }
         }
 
