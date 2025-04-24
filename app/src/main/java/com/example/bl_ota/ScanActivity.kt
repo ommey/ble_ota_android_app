@@ -22,13 +22,14 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.bl_ota.ConnectionManager
 
 class ScanActivity : AppCompatActivity() {
     private lateinit var bluetoothScanner: BluetoothScanner
     private lateinit var filePickerLauncher: ActivityResultLauncher<Intent>
     private lateinit var deviceRecycler: RecyclerView
     private lateinit var deviceList: ArrayList<DeviceData>
+    private lateinit var swipeRefreshLayout: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+
 
     private var isScanning = false
         set(value) {
@@ -49,32 +50,16 @@ class ScanActivity : AppCompatActivity() {
             insets
         }
 
-        @SuppressLint("MissingPermission")
-        fun resetDeviceListAndConnections() {
-            // 1. Stoppa scanning
-            stopBleScan()
 
-            // 2. Töm listan med hittade enheter
-            deviceList.clear()
-            deviceRecycler.adapter?.notifyDataSetChanged()
 
-            // 3. Nollställ alla ConnectionManager callbacks
-            ConnectionManager.bluetoothGatt?.close()
-            ConnectionManager.bluetoothGatt = null
-            ConnectionManager.onConnectionStateChange = null
-            ConnectionManager.onServicesDiscovered = null
-            ConnectionManager.onRssiRead = null
-            ConnectionManager.onCharacteristicWrite = null
-            ConnectionManager.onCharacteristicRead = null
-            ConnectionManager.onMtuChanged = null
-            ConnectionManager.startOtaProcedure = null
-            ConnectionManager.pendingWriteMap.clear()
-            ConnectionManager.pendingReadMap.clear()
-            ConnectionManager.pendingViewMap.clear()
-            ConnectionManager.notificationViewMap.clear()
-            ConnectionManager.indicationViewMap.clear()
+
+
+
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
+        swipeRefreshLayout.setOnRefreshListener {
+            resetDeviceListAndConnections()
+            swipeRefreshLayout.isRefreshing = false
         }
-
 
         bluetoothScanner = BluetoothScanner(this) { result ->
             val device = result.device
@@ -119,6 +104,7 @@ class ScanActivity : AppCompatActivity() {
 
         bleSwitch.setOnClickListener {
             if (isScanning){
+                stopBleScan()
                 resetDeviceListAndConnections()
             } else startBleScan()
         }
@@ -142,6 +128,8 @@ class ScanActivity : AppCompatActivity() {
         }
 
     }
+
+
 
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
@@ -219,14 +207,33 @@ class ScanActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     override fun onResume() {
         super.onResume()
+
         if (!bluetoothScanner.isBluetoothEnabled()) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
                 bluetoothEnablingResult.launch(bluetoothScanner.enableBluetoothIntent())
             }
+        } else {
+            resetDeviceListAndConnections() // ← Trigger reset
+            startBleScan()                  // ← Restart scan
         }
     }
+
+    @SuppressLint("MissingPermission")
+    fun resetDeviceListAndConnections() {
+        // 1. Stoppa scanning
+        //stopBleScan()
+
+        // 2. Töm listan med hittade enheter
+        deviceList.clear()
+        deviceRecycler.adapter?.notifyDataSetChanged()
+
+        // 3. Nollställ alla ConnectionManager callbacks
+
+    }
+
 
     private val bluetoothEnablingResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()

@@ -236,6 +236,24 @@ class ServiceControlActivity : AppCompatActivity() {
         ConnectionManager.bluetoothGatt = null
         ConnectionManager.onServicesDiscovered = null
         ConnectionManager.onConnectionStateChange = null
+
+
+        ConnectionManager.bluetoothGatt?.close()
+        ConnectionManager.bluetoothGatt = null
+        ConnectionManager.onConnectionStateChange = null
+        ConnectionManager.onServicesDiscovered = null
+        ConnectionManager.onRssiRead = null
+        ConnectionManager.onCharacteristicWrite = null
+        ConnectionManager.onCharacteristicRead = null
+        ConnectionManager.onMtuChanged = null
+        ConnectionManager.startOtaProcedure = null
+        ConnectionManager.pendingWriteMap.clear()
+        ConnectionManager.pendingReadMap.clear()
+        ConnectionManager.pendingViewMap.clear()
+        ConnectionManager.notificationViewMap.clear()
+        ConnectionManager.indicationViewMap.clear()
+
+
     }
 }
 
