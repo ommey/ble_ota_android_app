@@ -93,6 +93,10 @@ val featureCatalog = listOf(
                             statusText.text = "OTA characteristics not found"
                             return@setOnClickListener
                         }
+                        // Step 3: Enable indication on confirmation characteristic
+                        ConnectionManager.enableIndications(confirmationChar)
+                        Thread.sleep(100) // small delay to not overload
+
 
                         // Step 1: Write base address
                         baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
@@ -118,16 +122,11 @@ val featureCatalog = listOf(
                                 }
                             }
 
-
-
                             baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
                             baseAddressChar.value = byteArrayOf(0x07, 0x00, 0x70, 0x00)
                             ConnectionManager.writeCharacteristic(baseAddressChar)
                             Thread.sleep(20) // small delay to not overload
 
-
-                            // Step 3: Enable indication on confirmation characteristic
-                            ConnectionManager.enableIndications(confirmationChar)
 
                             activity.runOnUiThread {
                                 statusText.text = "Awaiting confirmation..."

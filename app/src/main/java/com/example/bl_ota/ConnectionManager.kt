@@ -249,6 +249,7 @@ object ConnectionManager {
         gatt.writeDescriptor(descriptor)
     }
 
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @JvmStatic
     @SuppressLint("MissingPermission")
@@ -266,6 +267,7 @@ object ConnectionManager {
         if (descriptor != null) {
             if (bluetoothGatt?.writeDescriptor(descriptor, value) == BluetoothStatusCodes.SUCCESS) {
                 //bleEventListener?.onShowToast("🔔 Notifications activated")
+                Log.d("BLE", "indications for ${characteristic.toString()}")
                 return
             }
         }
