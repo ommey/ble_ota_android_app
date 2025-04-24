@@ -3,10 +3,12 @@ package com.example.bl_ota
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGattCharacteristic
 import android.net.Uri
+import android.os.Build
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import com.example.bl_ota.R
 import com.example.bl_ota.DiscoveredFeature
 import com.example.bl_ota.FilePickerHelper
@@ -17,10 +19,11 @@ import java.util.*
 import java.util.UUID
 val stm_ota_service_uuid : String = "0000FE20-cc7a-482a-984a-7f2ed5b3e58f"
 val stm_ota_base_address_characteristic_uuid : String = "000FE22-8e22-4541-9d4c-21edae82ed19"
-val stm_ota_file_upload_reboot_confirmation_characteristic_uuid : String = "000FE23-8e22-4541-9d4c-21edae82ed19"
+val stm_ota_file_upload_reboot_confirmation_characteristic_uuid = UUID.fromString("000FE23-8e22-4541-9d4c-21edae82ed19")
 val stm_ota_ota_raw_data_characteristic_uuid : String = "000FE24-8e22-4541-9d4c-21edae82ed19"
 val stm_ota_reboot_request_characteristic_uuid : String = "0000FE11-8e22-4541-9d4c-21edae82ed19"
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("MissingPermission")
 val featureCatalog = listOf(
     // STM OTA: needs all service UUIDs
@@ -30,7 +33,7 @@ val featureCatalog = listOf(
         serviceUUIDs = listOf(UUID.fromString(stm_ota_service_uuid)),
         characteristicUUIDs = listOf(
             UUID.fromString(stm_ota_base_address_characteristic_uuid),
-            UUID.fromString(stm_ota_file_upload_reboot_confirmation_characteristic_uuid),
+            UUID.fromString(stm_ota_file_upload_reboot_confirmation_characteristic_uuid.toString()),
             UUID.fromString(stm_ota_ota_raw_data_characteristic_uuid)),
         binder = { view, gatt ->
             val statusText = view.findViewById<TextView>(R.id.statusTextView)
@@ -84,13 +87,12 @@ val featureCatalog = listOf(
 
                         val baseAddressChar = gatt.getCharacteristic(UUID.fromString(stm_ota_base_address_characteristic_uuid))
                         val otaDataChar = gatt.getCharacteristic(UUID.fromString(stm_ota_ota_raw_data_characteristic_uuid))
-                        val confirmationChar = gatt.getCharacteristic(UUID.fromString(stm_ota_file_upload_reboot_confirmation_characteristic_uuid))
+                        val confirmationChar = gatt.getCharacteristic(UUID.fromString(stm_ota_file_upload_reboot_confirmation_characteristic_uuid.toString()))
 
                         if (baseAddressChar == null || otaDataChar == null || confirmationChar == null) {
                             statusText.text = "OTA characteristics not found"
                             return@setOnClickListener
                         }
-                        ConnectionManager.enableIndications(confirmationChar)
 
                         // Step 1: Write base address
                         baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
@@ -125,6 +127,8 @@ val featureCatalog = listOf(
 
 
                             // Step 3: Enable indication on confirmation characteristic
+                            ConnectionManager.enableIndications(confirmationChar)
+
                             activity.runOnUiThread {
                                 statusText.text = "Awaiting confirmation..."
                             }

@@ -1,6 +1,7 @@
 // ConnectionManager.kt
 package com.example.bl_ota
 
+import android.R.attr.value
 import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.content.Context
@@ -11,6 +12,7 @@ import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import com.example.bl_ota.R
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -39,7 +41,6 @@ object ConnectionManager {
     val pendingReadMap = mutableMapOf<UUID, Pair<TextView, ImageView>>()
     val notificationViewMap = mutableMapOf<UUID, Triple<TextView, ImageView, () -> Int>>() // includes counter function
     val indicationViewMap = mutableMapOf<UUID, Triple<TextView, ImageView, () -> Long>>()
-
     var negotiatedMtu: Int = 23
 
     private val gattCallback = object : BluetoothGattCallback() {
@@ -112,34 +113,48 @@ object ConnectionManager {
             }
         }
 
-        override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-            val uuid = characteristic.uuid.toString().lowercase()
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic
+        ) {
 
-            // ✅ Step 1: Treat ANY value as confirmation
-            if (uuid == stm_ota_file_upload_reboot_confirmation_characteristic_uuid.lowercase()) {
-                Handler(Looper.getMainLooper()).post {
-                   // Toast.makeText(gatt.device.context, "OTA complete. Confirmation received.", Toast.LENGTH_LONG).show()
+            if (characteristic.uuid == stm_ota_file_upload_reboot_confirmation_characteristic_uuid) {
+                val value = characteristic.value
+                if (value.isNotEmpty() && value[0] == 0x01.toByte()) {
                     Log.i("OTA", "OTA confirmation characteristic changed (value: ${characteristic.value?.joinToString(" ") { "0x%02X".format(it) }})")
-                    // Optional: auto-reboot logic here if needed
                 }
-                return
             }
 
-//            // 🧩 Step 2: Keep existing UI update logic (if needed)
-//            val viewSet = notificationViewMap[characteristic.uuid] ?: indicationViewMap[characteristic.uuid] ?: return
-//            val (statusText, icon, getDiff) = viewSet
-//
-//            val sinceLast = getDiff()
-//            val nowStr = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
-//
-//            Handler(Looper.getMainLooper()).post {
-//                icon.setImageResource(R.drawable.response)
-//                statusText.text = "Last at: $nowStr\nΔ ${sinceLast}ms"
-//
-//                Handler(Looper.getMainLooper()).postDelayed({
-//                    icon.setImageResource(R.drawable.success)
-//                }, 200)
-//            }
+
+
+                /* val uuid = characteristic.uuid.toString().lowercase()
+
+                 // ✅ Step 1: Treat ANY value as confirmation
+                 if (uuid == stm_ota_file_upload_reboot_confirmation_characteristic_uuid.lowercase()) {
+                     Handler(Looper.getMainLooper()).post {
+                         // Toast.makeText(gatt.device.context, "OTA complete. Confirmation received.", Toast.LENGTH_LONG).show()
+                         Log.i("OTA", "OTA confirmation characteristic changed (value: ${characteristic.value?.joinToString(" ") { "0x%02X".format(it) }})")
+                         // Optional: auto-reboot logic here if needed
+                     }
+                     return
+                 }
+
+     // uppdaterar in icon om tillgänglig och textview
+                 val viewSet = notificationViewMap[characteristic.uuid] ?: indicationViewMap[characteristic.uuid] ?: return
+                 val (statusText, icon, getDiff) = viewSet
+
+                 val sinceLast = getDiff()
+                 val nowStr = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+
+                 Handler(Looper.getMainLooper()).post {
+                     icon.setImageResource(R.drawable.response)
+                     statusText.text = "Last at: $nowStr\nΔ ${sinceLast}ms"
+                 }
+
+                 Handler(Looper.getMainLooper()).postDelayed({
+                     icon.setImageResource(R.drawable.success)
+                 }, 200)*/
+
         }
 
 
@@ -234,15 +249,27 @@ object ConnectionManager {
         gatt.writeDescriptor(descriptor)
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @JvmStatic
     @SuppressLint("MissingPermission")
     fun enableIndications(characteristic: BluetoothGattCharacteristic) {
         val gatt = bluetoothGatt ?: return
         gatt.setCharacteristicNotification(characteristic, true) // ✅ Saknades i din version
 
-        val descriptor = characteristic.getDescriptor(UUID.fromString(CCC_DESCRIPTOR_UUID)) ?: return
+        val cccdUuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+        val descriptor = characteristic.getDescriptor(cccdUuid)
         descriptor.value = BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
         gatt.writeDescriptor(descriptor)
+
+        val value = BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
+
+        if (descriptor != null) {
+            if (bluetoothGatt?.writeDescriptor(descriptor, value) == BluetoothStatusCodes.SUCCESS) {
+                //bleEventListener?.onShowToast("🔔 Notifications activated")
+                return
+            }
+        }
+        //bleEventListener?.onShowToast("❌ Couldn't activate notifications")
     }
 
 
