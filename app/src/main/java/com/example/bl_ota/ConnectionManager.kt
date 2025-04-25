@@ -45,6 +45,7 @@ object ConnectionManager {
     val indicationViewMap = mutableMapOf<UUID, Triple<TextView, ImageView, () -> Long>>()
     var negotiatedMtu: Int = 23
     var startOtaProcedure: (() -> Unit)? = null
+    var onOtaConfirmed: (() -> Unit)? = null
 
     private val gattCallback = object : BluetoothGattCallback() {
         @SuppressLint("MissingPermission")
@@ -141,20 +142,23 @@ object ConnectionManager {
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
         ) {
-
             if (characteristic.uuid == stm_ota_file_upload_reboot_confirmation_characteristic_uuid) {
                 val value = characteristic.value
                 if (value.isNotEmpty() && value[0] == 0x01.toByte()) {
-                    Log.i("OTA", "OTA confirmation characteristic changed (value: ${characteristic.value?.joinToString(" ") { "0x%02X".format(it) }})")
+                    Log.i("OTA", "OTA confirmation received: ${value.joinToString(" ") { "0x%02X".format(it) }}")
+
+                    Handler(Looper.getMainLooper()).post {
+                        onOtaConfirmed?.invoke()
+                    }
                 }
             }
 
 
 
-                /* val uuid = characteristic.uuid.toString().lowercase()
+                 val uuid = characteristic.uuid.toString().lowercase()
 
                  // ✅ Step 1: Treat ANY value as confirmation
-                 if (uuid == stm_ota_file_upload_reboot_confirmation_characteristic_uuid.lowercase()) {
+                 if (uuid == stm_ota_file_upload_reboot_confirmation_characteristic_uuid.toString().lowercase()) {
                      Handler(Looper.getMainLooper()).post {
                          // Toast.makeText(gatt.device.context, "OTA complete. Confirmation received.", Toast.LENGTH_LONG).show()
                          Log.i("OTA", "OTA confirmation characteristic changed (value: ${characteristic.value?.joinToString(" ") { "0x%02X".format(it) }})")
@@ -177,7 +181,7 @@ object ConnectionManager {
 
                  Handler(Looper.getMainLooper()).postDelayed({
                      icon.setImageResource(R.drawable.success)
-                 }, 200)*/
+                 }, 200)
 
         }
 
@@ -319,6 +323,7 @@ object ConnectionManager {
         pendingViewMap.clear()
         notificationViewMap.clear()
         indicationViewMap.clear()
+        onOtaConfirmed = null
     }
 
 

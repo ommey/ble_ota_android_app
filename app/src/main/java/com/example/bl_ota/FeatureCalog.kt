@@ -2,12 +2,15 @@ package com.example.bl_ota
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGattCharacteristic
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
+import com.example.bl_ota.ConnectionManager.refresh
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.io.File
 import java.util.UUID
@@ -132,7 +135,25 @@ val featureCatalog = listOf(
                     }
 
                     ConnectionManager.enableIndications(confirmationChar)
+                    ConnectionManager.onOtaConfirmed = {
+                        if (!activity.isFinishing) {
+                            ConnectionManager.bluetoothGatt?.refresh()
+                            ConnectionManager.bluetoothGatt?.close()
+                            ConnectionManager.bluetoothGatt = null
 
+                            AlertDialog.Builder(activity)
+                                .setTitle("Uppdatering slutförd")
+                                .setMessage("Enheten bekräftade OTA-uppdatering och startar nu om.\nDu återgår till skanningsläget.")
+                                .setCancelable(false)
+                                .setPositiveButton("OK") { _, _ ->
+                                    val intent = Intent(activity, ScanActivity::class.java)
+                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                    activity.startActivity(intent)
+                                    activity.finish()
+                                }
+                                .show()
+                        }
+                    }
                     ConnectionManager.startOtaProcedure = {
                         baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
                         baseAddressChar.value = byteArrayOf(0x02, 0x00, 0x70, 0x00)
@@ -198,7 +219,31 @@ val featureCatalog = listOf(
                 ConnectionManager.writeCharacteristic(rebootChar)
 
                 statusText.text = "Reboot command sent"
+
+                // Vänta lite så att skrivningen hinner gå iväg (just in case)
+                button.postDelayed({
+                    // Försök att städa upp anslutningen och visa dialog
+                    val context = view.context
+                    if (context is ServiceControlActivity && !context.isFinishing) {
+                        ConnectionManager.bluetoothGatt?.refresh()
+                        ConnectionManager.bluetoothGatt?.close()
+                        ConnectionManager.bluetoothGatt = null
+
+                        AlertDialog.Builder(context)
+                            .setTitle("Reboot request sent")
+                            .setMessage("characteristic is of type WRITE_TYPE_NO_RESPOSE reset is assumed returning to scanning.")
+                            .setCancelable(false)
+                            .setPositiveButton("OK") { _, _ ->
+                                val intent = Intent(context, ScanActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                context.startActivity(intent)
+                                context.finish()
+                            }
+                            .show()
+                    }
+                }, 1000) // 1 sekund för att ge enheten tid att reagera
             }
+
         }
     )
 )
