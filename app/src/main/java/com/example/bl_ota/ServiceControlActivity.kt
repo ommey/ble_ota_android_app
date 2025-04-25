@@ -20,6 +20,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -214,6 +215,7 @@ class ServiceControlActivity : AppCompatActivity() {
                 }
             }
         }
+
     }
 
     fun launchFilePicker(onPicked: (Uri) -> Unit) {
@@ -229,31 +231,9 @@ class ServiceControlActivity : AppCompatActivity() {
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onDestroy() {
         super.onDestroy()
-        ConnectionManager.onMtuChanged = null
+
         rssiHandler.removeCallbacks(rssiUpdateRunnable)
-        ConnectionManager.onRssiRead = null
-        ConnectionManager.bluetoothGatt?.close()
-        ConnectionManager.bluetoothGatt = null
-        ConnectionManager.onServicesDiscovered = null
-        ConnectionManager.onConnectionStateChange = null
-
-
-        ConnectionManager.bluetoothGatt?.close()
-        ConnectionManager.bluetoothGatt = null
-        ConnectionManager.onConnectionStateChange = null
-        ConnectionManager.onServicesDiscovered = null
-        ConnectionManager.onRssiRead = null
-        ConnectionManager.onCharacteristicWrite = null
-        ConnectionManager.onCharacteristicRead = null
-        ConnectionManager.onMtuChanged = null
-        ConnectionManager.startOtaProcedure = null
-        ConnectionManager.pendingWriteMap.clear()
-        ConnectionManager.pendingReadMap.clear()
-        ConnectionManager.pendingViewMap.clear()
-        ConnectionManager.notificationViewMap.clear()
-        ConnectionManager.indicationViewMap.clear()
-
-
+        ConnectionManager.resetConnectionHandler()
     }
 }
 

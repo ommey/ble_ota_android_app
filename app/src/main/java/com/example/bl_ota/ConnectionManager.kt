@@ -1,6 +1,7 @@
 // ConnectionManager.kt
 package com.example.bl_ota
 
+import android.Manifest
 import android.R.attr.value
 import android.annotation.SuppressLint
 import android.bluetooth.*
@@ -13,6 +14,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 import com.example.bl_ota.R
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -294,9 +296,43 @@ object ConnectionManager {
             }
         }
         //bleEventListener?.onShowToast("❌ Couldn't activate notifications")
+
+
+    }
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun resetConnectionHandler(){
+        bluetoothGatt?.apply {
+           // refresh()
+            close()
+        }
+        bluetoothGatt = null
+        onConnectionStateChange = null
+        onServicesDiscovered = null
+        onRssiRead = null
+        onCharacteristicWrite = null
+        onCharacteristicRead = null
+        onMtuChanged = null
+        startOtaProcedure = null
+        pendingWriteMap.clear()
+        pendingReadMap.clear()
+        pendingViewMap.clear()
+        notificationViewMap.clear()
+        indicationViewMap.clear()
     }
 
 
+    @SuppressLint("PrivateApi")
+    fun BluetoothGatt.refresh(): Boolean {
+        return try {
+            val refreshMethod = BluetoothGatt::class.java.getMethod("refresh")
+            refreshMethod.isAccessible = true
+            refreshMethod.invoke(this) as Boolean
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 
 }
 

@@ -229,6 +229,7 @@ class ScanActivity : AppCompatActivity() {
         // 2. Töm listan med hittade enheter
         deviceList.clear()
         deviceRecycler.adapter?.notifyDataSetChanged()
+        ConnectionManager.resetConnectionHandler()
 
         // 3. Nollställ alla ConnectionManager callbacks
 
