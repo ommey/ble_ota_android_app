@@ -263,20 +263,30 @@ object ConnectionManager {
         gatt.writeDescriptor(descriptor)
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("MissingPermission")
     fun toggleIndications(characteristic: BluetoothGattCharacteristic, enable: Boolean) {
-        val gatt = bluetoothGatt ?: return
-        gatt.setCharacteristicNotification(characteristic, enable)
-
-        val descriptor = characteristic.getDescriptor(UUID.fromString(CCC_DESCRIPTOR_UUID)) ?: return
-        descriptor.value = if (enable)
-            BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
-        else
-            BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
-
-        gatt.writeDescriptor(descriptor)
+        if (enable) {
+            enableIndications(characteristic)
+        } else {
+            disableIndications(characteristic)
+        }
     }
 
+    @SuppressLint("MissingPermission")
+    fun disableIndications(characteristic: BluetoothGattCharacteristic) {
+        val gatt = bluetoothGatt ?: return
+
+        gatt.setCharacteristicNotification(characteristic, false)
+
+        val cccdUuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+        val descriptor = characteristic.getDescriptor(cccdUuid) ?: return
+
+        descriptor.value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+        gatt.writeDescriptor(descriptor)
+
+        Log.d("BLE", "Indications disabled for ${characteristic.uuid}")
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @JvmStatic
@@ -295,7 +305,7 @@ object ConnectionManager {
         if (descriptor != null) {
             if (bluetoothGatt?.writeDescriptor(descriptor, value) == BluetoothStatusCodes.SUCCESS) {
                 //bleEventListener?.onShowToast("🔔 Notifications activated")
-                Log.d("BLE", "indications for ${characteristic.toString()}")
+                Log.d("DESCPRIPTOR", "indications for ${characteristic.toString()}")
                 return
             }
         }

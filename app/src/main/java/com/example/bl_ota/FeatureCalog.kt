@@ -241,7 +241,7 @@ val featureCatalog = listOf(
                             }
                             .show()
                     }
-                }, 1000) // 1 sekund för att ge enheten tid att reagera
+                }, 200)
             }
 
         }

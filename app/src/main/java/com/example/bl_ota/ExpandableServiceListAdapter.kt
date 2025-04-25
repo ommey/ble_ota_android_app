@@ -4,10 +4,12 @@ import android.animation.LayoutTransition
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.content.Context
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import com.example.bl_ota.ConnectionManager
 
@@ -55,6 +57,7 @@ class ExpandableServiceListAdapter(
         return view
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun getChildView(
         groupPosition: Int,
         childPosition: Int,
@@ -226,24 +229,16 @@ class ExpandableServiceListAdapter(
             val icon = indicateBlock.findViewById<ImageView>(R.id.indicateInteractionIcon)
             val toggleSwitch = indicateBlock.findViewById<Switch>(R.id.indicateToggleSwitch)
 
-            var lastTime = System.currentTimeMillis()
-
+            var indicateCount = 0
             toggleSwitch.setOnCheckedChangeListener { _, isChecked ->
                 ConnectionManager.toggleIndications(characteristic, isChecked)
-                lastTime = System.currentTimeMillis()
+                indicateCount = 0
                 statusText.text = if (isChecked) "Indications on" else "Indications off"
                 icon.setImageResource(R.drawable.success)
-
                 if (isChecked) {
-                    ConnectionManager.indicationViewMap[characteristic.uuid] =
-                        Triple(statusText, icon) {
-                            val now = System.currentTimeMillis()
-                            val diff = now - lastTime
-                            lastTime = now
-                            diff
-                        }
+                    ConnectionManager.notificationViewMap[characteristic.uuid] = Triple(statusText, icon) { ++indicateCount }
                 } else {
-                    ConnectionManager.indicationViewMap.remove(characteristic.uuid)
+                    ConnectionManager.notificationViewMap.remove(characteristic.uuid)
                 }
             }
 
