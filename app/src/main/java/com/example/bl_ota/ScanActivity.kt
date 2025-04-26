@@ -32,12 +32,12 @@ class ScanActivity : AppCompatActivity() {
 
 
     private var isScanning = false
-        set(value) {
-            field = value
-            runOnUiThread {
-                findViewById<Switch>(R.id.bleSwitch)?.text = if (value) "Stop Scan" else "Start Scan"
-            }
-        }
+//        set(value) {
+//            field = value
+//            runOnUiThread {
+//                findViewById<Switch>(R.id.bleSwitch)?.text = if (value) "Stop Scan" else "Start Scan"
+//            }
+//        }
 
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,13 +86,13 @@ class ScanActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val selectedBinaryText = findViewById<TextView>(R.id.selectedBinaryText)
+        //val selectedBinaryText = findViewById<TextView>(R.id.selectedBinaryText)
         val RSSITextView = findViewById<TextView>(R.id.RSSITextView)
         val deviceTypeTextView = findViewById<TextView>(R.id.DeviceTypeTextView)
         val deviceNameTextView = findViewById<TextView>(R.id.DeviceNameTextView)
         val deviceAddressTextView = findViewById<TextView>(R.id.DeviceAddressTextView)
         val lastSeenTextView = findViewById<TextView>(R.id.LastSeenTextView_yymmdd)
-        val bleSwitch = findViewById<Switch>(R.id.bleSwitch)
+        //val bleSwitch = findViewById<Switch>(R.id.bleSwitch)
 
         val sortHandler: (TextView) -> Unit = { view ->
             val sortBy = view.text.toString()
@@ -102,30 +102,30 @@ class ScanActivity : AppCompatActivity() {
         listOf(RSSITextView, deviceTypeTextView, deviceNameTextView, deviceAddressTextView, lastSeenTextView)
             .forEach { it.setOnClickListener { _ -> sortHandler(it) } }
 
-        bleSwitch.setOnClickListener {
-            if (isScanning){
-                stopBleScan()
-                resetDeviceListAndConnections()
-            } else startBleScan()
-        }
+//        bleSwitch.setOnClickListener {
+//            if (isScanning){
+//                stopBleScan()
+//                resetDeviceListAndConnections()
+//            } else startBleScan()
+//        }
 
-        filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                result.data?.data?.let { uri ->
-                    val fileName = FilePickerHelper.getFileNameFromUri(this, uri)
-                    selectedBinaryText.text = fileName?.let { getString(R.string.selectedBinaryName, it) }
-                        ?: "Unknown file selected"
-                }
-            }
-        }
+//        filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+//            if (result.resultCode == RESULT_OK) {
+//                result.data?.data?.let { uri ->
+//                    val fileName = FilePickerHelper.getFileNameFromUri(this, uri)
+//                    selectedBinaryText.text = fileName?.let { getString(R.string.selectedBinaryName, it) }
+//                        ?: "Unknown file selected"
+//                }
+//            }
+//        }
 
-        selectedBinaryText.setOnClickListener {
-            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                type = "*/*"
-                addCategory(Intent.CATEGORY_OPENABLE)
-            }
-            filePickerLauncher.launch(intent)
-        }
+//        selectedBinaryText.setOnClickListener {
+//            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+//                type = "*/*"
+//                addCategory(Intent.CATEGORY_OPENABLE)
+//            }
+//            filePickerLauncher.launch(intent)
+//        }
 
     }
 
