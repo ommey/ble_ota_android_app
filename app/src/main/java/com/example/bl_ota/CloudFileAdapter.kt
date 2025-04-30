@@ -12,12 +12,13 @@ class CloudFileAdapter(
 ) : RecyclerView.Adapter<CloudFileAdapter.FileViewHolder>() {
 
     inner class FileViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val name = view.findViewById<TextView>(R.id.fileNameText)
-        val meta = view.findViewById<TextView>(R.id.fileMetaText)
+        val name: TextView = view.findViewById(R.id.fileNameText)
+        val meta: TextView = view.findViewById<TextView>(R.id.fileMetaText)
 
         fun bind(file: CloudFile) {
             name.text = file.name
-            meta.text = "Version: ${file.version} • Uploaded: ${file.uploadDate}"
+            val context = itemView.context
+            meta.text = context.getString(R.string.firmware_meta, file.version, file.uploadDate)
             itemView.setOnClickListener { onItemClick(file) }
         }
     }

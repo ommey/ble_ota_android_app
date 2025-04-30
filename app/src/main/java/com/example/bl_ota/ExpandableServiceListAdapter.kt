@@ -8,10 +8,15 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.BaseExpandableListAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.Switch
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
-import com.example.bl_ota.ConnectionManager
 
 class ExpandableServiceListAdapter(
     private val context: Context,
@@ -67,10 +72,6 @@ class ExpandableServiceListAdapter(
     ): View {
         val inflater = LayoutInflater.from(context)
         val view = convertView ?: inflater.inflate(R.layout.layout_child, parent, false)
-
-        //val headerLayout = view.findViewById<View>(R.id.characteristicHeader)
-        //headerLayout.visibility = if (childPosition == 0) View.VISIBLE else View.GONE
-
         val characteristic = getChild(groupPosition, childPosition) as BluetoothGattCharacteristic
 
         val capLayout = view.findViewById<LinearLayout>(R.id.capabilityLayout)
@@ -93,7 +94,6 @@ class ExpandableServiceListAdapter(
             val icon = readBlock.findViewById<ImageView>(R.id.readInteractionIcon)
 
             readBtn.setOnClickListener {
-                // animate
                 icon.setImageResource(R.drawable.cog)
                 icon.rotation = 0f
                 icon.animate().rotationBy(360f).setDuration(600).withEndAction {
@@ -247,7 +247,7 @@ class ExpandableServiceListAdapter(
 
 
         view.setOnClickListener {
-            val isExpanded = capLayout.visibility == View.VISIBLE
+            val isExpanded = capLayout.isVisible
 
             if (isExpanded) {
                 // COLLAPSE
@@ -293,10 +293,7 @@ class ExpandableServiceListAdapter(
             }
         }
 
-
-
         childArrow.rotation = if (capLayout.isVisible) 180f else 0f
-
 
         if (groupPosition == expandingGroup) {
             view.alpha = 0f
@@ -308,8 +305,6 @@ class ExpandableServiceListAdapter(
                 .setStartDelay(childPosition * 75L)
                 .start()
         }
-
-
         return view
     }
 }

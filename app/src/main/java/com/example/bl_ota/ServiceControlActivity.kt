@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import android.widget.ExpandableListView
 import android.widget.ImageView
@@ -45,6 +46,7 @@ class ServiceControlActivity : AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.w("LIFECYCLE", "ServiceControlActivity has been created!!!")
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_service_control)
@@ -231,7 +233,8 @@ class ServiceControlActivity : AppCompatActivity() {
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onDestroy() {
         super.onDestroy()
-
+        Log.w("LIFECYCLE", "💀 ServiceControlActivity has been destroyed!")
+        MqttManager.clearRetrieveFirmwareCallback()
         rssiHandler.removeCallbacks(rssiUpdateRunnable)
         ConnectionManager.resetConnectionHandler()
     }

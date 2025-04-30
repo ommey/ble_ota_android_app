@@ -1,5 +1,6 @@
 package com.example.bl_ota
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,24 +24,24 @@ class DeviceAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentItem = deviceList[position]
+        val context = holder.itemView.context
 
         holder.deviceNameTextView.text = currentItem.name
         holder.deviceAddressTextView.text = currentItem.address
 
-        val sdf_yymmdd = SimpleDateFormat("YY/MM/dd", Locale.getDefault())
-        val seenText_yymmdd = sdf_yymmdd.format(Date(currentItem.lastSeen))
-        holder.lastSeenTextView_yymmdd.text = seenText_yymmdd
+        val seenTextYMD = sdfYMD.format(Date(currentItem.lastSeen))
+        holder.lastSeenTextViewYMD.text = seenTextYMD
 
-        val sdf_hhmmss = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        val seenText_hhmmss = sdf_hhmmss.format(Date(currentItem.lastSeen))
-        holder.lastSeenTextView_hhmmss.text = seenText_hhmmss
+        val seenTextHMS = sdfHMS.format(Date(currentItem.lastSeen))
+        holder.lastSeenTextViewHMS.text = seenTextHMS
 
-        holder.RSSITextView.text = "${currentItem.rssi}"
+        holder.rssiTextView.text = context.getString(R.string.rssi_value, currentItem.rssi)
+
         holder.barsImageView.setImageDrawable(
-            getBarsImageFromRssi(holder.itemView.context, currentItem.rssi)
+            getBarsImageFromRssi(context, currentItem.rssi)
         )
         holder.deviceTypeImageView.setImageDrawable(
-            getDeviceTypeImage(holder.itemView.context, currentItem.deviceType)
+            getDeviceTypeImage(context, currentItem.deviceType)
         )
 
         holder.deviceNameTextView.isSelected = true
@@ -55,11 +56,17 @@ class DeviceAdapter(
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val barsImageView: ImageView = itemView.findViewById(R.id.BarsImageView)
-        val RSSITextView: TextView = itemView.findViewById(R.id.RSSITextView)
+        val rssiTextView: TextView = itemView.findViewById(R.id.RSSITextView)
         val deviceTypeImageView: ImageView = itemView.findViewById(R.id.DeviceTypeImageView)
         val deviceNameTextView: TextView = itemView.findViewById(R.id.DeviceNameTextView)
         val deviceAddressTextView: TextView = itemView.findViewById(R.id.DeviceAddressTextView)
-        val lastSeenTextView_yymmdd: TextView = itemView.findViewById(R.id.LastSeenTextView_yymmdd)
-        val lastSeenTextView_hhmmss: TextView = itemView.findViewById(R.id.LastSeenTextView_hhmmss)
+        val lastSeenTextViewYMD: TextView = itemView.findViewById(R.id.LastSeenTextView_yymmdd)
+        val lastSeenTextViewHMS: TextView = itemView.findViewById(R.id.LastSeenTextView_hhmmss)
+    }
+
+    @SuppressLint("ConstantLocale")
+    companion object {
+        private val sdfYMD = SimpleDateFormat("yy/MM/dd", Locale.getDefault())
+        private val sdfHMS = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     }
 }

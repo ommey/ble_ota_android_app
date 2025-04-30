@@ -9,31 +9,9 @@ enum class DeviceTypes{
     UNKNOWN
 }
 
-enum class Bars{
-    NOBARS,
-    ONEBARS,
-    TWOBARS,
-    THREEBARS,
-    FOURBARS,
-}
-
 data class DeviceData(
     var deviceType: DeviceTypes, var rssi: Int, var name: String, var address: String, var lastSeen: Long
-){
-
-}
-
-fun getBarsImagefromEnum(context: Context, bars: Bars): Drawable? {
-    val resId = when (bars) {
-        Bars.NOBARS -> R.drawable.no_bars
-        Bars.ONEBARS -> R.drawable.one_bars
-        Bars.TWOBARS -> R.drawable.two_bars
-        Bars.THREEBARS -> R.drawable.three_bars
-        Bars.FOURBARS -> R.drawable.four_bars
-    }
-
-    return ContextCompat.getDrawable(context, resId)
-}
+)
 
 fun getBarsImageFromRssi(context: Context, rssi: Int): Drawable? {
     val resId = when {

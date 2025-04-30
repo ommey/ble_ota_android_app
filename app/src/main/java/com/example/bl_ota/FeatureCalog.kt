@@ -49,9 +49,7 @@ val featureCatalog = listOf(
                 MqttManager.retrieveAvailableFirmware(
                     onResult = { cloudFiles ->
                         activity.runOnUiThread {
-                            val bottomSheetView = activity.layoutInflater.inflate(
-                                R.layout.bottom_sheet_file_selector, null
-                            )
+                            val bottomSheetView = activity.layoutInflater.inflate(R.layout.bottom_sheet_file_selector, null)
                             val dialog = BottomSheetDialog(activity)
                             dialog.setContentView(bottomSheetView)
 

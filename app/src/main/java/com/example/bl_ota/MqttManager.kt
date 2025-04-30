@@ -16,6 +16,7 @@ object MqttManager{
     private lateinit var token: String
     private lateinit var username: String
     private val activeSubscriptions = mutableSetOf<String>()
+    private var retrieveFirmwareCallback: ((List<CloudFile>) -> Unit)? = null
 
     suspend fun connectAndSubscribe(user: String, pin: String, onConnected: () -> Unit, onIncorrectInput: (String) -> Unit, onError: (Throwable) -> Unit) {
         withContext(Dispatchers.IO) {
@@ -66,7 +67,16 @@ object MqttManager{
 
     fun retrieveAvailableFirmware(onResult: (List<CloudFile>) -> Unit, onError: (Throwable) -> Unit = {}) {
         val topic = "firmware/List/$username"
+
+        retrieveFirmwareCallback = onResult
+
         safeSubscribe(topic) { _, message ->
+            val callback = retrieveFirmwareCallback
+            if (callback == null) {
+                Log.w("MQTT", "⚠️ Firmware callback was cleared before message arrived")
+                return@safeSubscribe
+            }
+
             try {
                 val json = JSONObject(String(message.payload))
                 val firmwareArray = json.getJSONArray("files")
@@ -81,7 +91,7 @@ object MqttManager{
                     result.add(CloudFile(name, version, date))
                 }
 
-                onResult(result)
+                callback(result)
 
             } catch (e: Exception) {
                 onError(e)
@@ -101,6 +111,11 @@ object MqttManager{
         }
     }
 
+
+    fun clearRetrieveFirmwareCallback() {
+        retrieveFirmwareCallback = null
+        Log.d("MQTT", "🧹 Cleared firmware callback")
+    }
 
     fun reportUpdateStatus(device: String, status: String) {
         if (this::mqttClient.isInitialized && mqttClient.isConnected) {

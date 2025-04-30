@@ -7,29 +7,18 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 
-
-
-class BluetoothScanner(
-    private val context: Context,
-    private val onDeviceFound: (ScanResult) -> Unit
-) {
+class BluetoothScanner(private val context: Context, private val onDeviceFound: (ScanResult) -> Unit) {
 
     private val bluetoothAdapter: BluetoothAdapter by lazy {
-        val bluetoothManager =
-            context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothManager.adapter
     }
 
-
     private val bleScanner by lazy { bluetoothAdapter.bluetoothLeScanner }
 
-    private val scanSettings = ScanSettings.Builder()
-        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-        .build()
+    private val scanSettings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
 
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
