@@ -3,11 +3,12 @@ package com.example.bl_ota
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
+import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -20,8 +21,8 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -42,8 +43,8 @@ class ServiceControlActivity : AppCompatActivity() {
     }
 
     private lateinit var bluetoothDevice: BluetoothDevice
-    private lateinit var deviceInfoTextView: TextView
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.w("LIFECYCLE", "ServiceControlActivity has been created!!!")
@@ -72,7 +73,6 @@ class ServiceControlActivity : AppCompatActivity() {
         rssiHandler.post(rssiUpdateRunnable)
 
         val mtuValueTextView = findViewById<TextView>(R.id.MTUValTextview)
-        val mtuImageView = findViewById<ImageView>(R.id.MTUImage)
 
         ConnectionManager.onMtuChanged = { mtu ->
             runOnUiThread {
@@ -82,7 +82,7 @@ class ServiceControlActivity : AppCompatActivity() {
         }
 
 
-        val devicenametextview : TextView = findViewById<TextView>(R.id.DeviceNameTextView)
+        val deviceNameTextview : TextView = findViewById<TextView>(R.id.DeviceNameTextView)
         val amountServicesCharacteristic : TextView = findViewById<TextView>(R.id.AmountServicesChararacteristicsTextview)
 
         val expandableListView = findViewById<ExpandableListView>(R.id.expandable_service_list)
@@ -105,7 +105,7 @@ class ServiceControlActivity : AppCompatActivity() {
                     val text = try {
                         val decoded = value.toString(Charsets.UTF_8)
                         if (decoded.all { it.isISOControl() }) null else decoded // avoid showing junk
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
 
@@ -116,7 +116,7 @@ class ServiceControlActivity : AppCompatActivity() {
 
                 } else {
                     icon.setImageResource(R.drawable.fail)
-                    statusText.text = "Read failed"
+                    statusText.text = getString(R.string.read_failed)
                 }
             }
         }
@@ -133,17 +133,17 @@ class ServiceControlActivity : AppCompatActivity() {
 
                 if (success) {
                     icon.setImageResource(R.drawable.response)
-                    statusText.text = "Sent: $lastSent"
+                    statusText.text = getString(R.string.sent_value, lastSent)
                 } else {
                     icon.setImageResource(R.drawable.no_response)
-                    statusText.text = "Not confirmed : $lastSent"
+                    statusText.text = getString(R.string.not_confirmed_value, lastSent)
+
                 }
             }
         }
 
         val serviceData: MutableMap<BluetoothGattService, List<BluetoothGattCharacteristic>> = LinkedHashMap()
 
-        // Hämta device address
         val deviceAddress = intent.getStringExtra("device_address")
         if (deviceAddress == null) {
             Toast.makeText(this, "Device address is missing", Toast.LENGTH_SHORT).show()
@@ -156,10 +156,8 @@ class ServiceControlActivity : AppCompatActivity() {
         val bluetoothAdapter = bluetoothManager.adapter
         bluetoothDevice = bluetoothAdapter.getRemoteDevice(deviceAddress)
 
-        // Initiera anslutning
         ConnectionManager.connectToDevice(this, bluetoothDevice)
 
-        // Lyssna på services
         ConnectionManager.onServicesDiscovered = { gatt ->
             runOnUiThread {
                 serviceData.clear()
@@ -170,8 +168,7 @@ class ServiceControlActivity : AppCompatActivity() {
                 val serviceCount = gatt.services.size
                 val characteristicCount = gatt.services.sumOf { it.characteristics.size }
 
-                amountServicesCharacteristic.text = "Advertising $serviceCount services and $characteristicCount characteristics"
-
+                amountServicesCharacteristic.text = getString(R.string.advertising_services_and_characteristics, serviceCount, characteristicCount)
 
                 val adapter = ExpandableServiceListAdapter(this, serviceData)
                 expandableListView.setAdapter(adapter)
@@ -210,10 +207,10 @@ class ServiceControlActivity : AppCompatActivity() {
             runOnUiThread {
                 if (ConnectionManager.connected) {
                     Toast.makeText(this, "Connected to ${ConnectionManager.bluetoothGatt?.device?.name}", Toast.LENGTH_SHORT).show()
-                    devicenametextview.text = bluetoothDevice.name?.toString()
+                    deviceNameTextview.text = bluetoothDevice.name?.toString()
                 } else {
                     Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show()
-                    devicenametextview.text = bluetoothDevice.name?.toString()
+                    deviceNameTextview.text = bluetoothDevice.name?.toString()
                 }
             }
         }

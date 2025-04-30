@@ -1,6 +1,7 @@
 package com.example.bl_ota
 
 import android.animation.LayoutTransition
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.content.Context
@@ -18,6 +19,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 
+@Suppress("DEPRECATION")
 class ExpandableServiceListAdapter(
     private val context: Context,
     private val serviceData: Map<BluetoothGattService, List<BluetoothGattCharacteristic>>
@@ -62,14 +64,9 @@ class ExpandableServiceListAdapter(
         return view
     }
 
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    override fun getChildView(
-        groupPosition: Int,
-        childPosition: Int,
-        isLastChild: Boolean,
-        convertView: View?,
-        parent: ViewGroup?
-    ): View {
+    override fun getChildView(groupPosition: Int, childPosition: Int, isLastChild: Boolean, convertView: View?, parent: ViewGroup?): View {
         val inflater = LayoutInflater.from(context)
         val view = convertView ?: inflater.inflate(R.layout.layout_child, parent, false)
         val characteristic = getChild(groupPosition, childPosition) as BluetoothGattCharacteristic
@@ -100,12 +97,11 @@ class ExpandableServiceListAdapter(
                     icon.animate().rotationBy(360f).setDuration(600).start()
                 }.start()
 
-                statusText.text = "Reading..."
+                statusText.text = context.getString(R.string.reading_status)
                 ConnectionManager.pendingReadMap[characteristic.uuid] = statusText to icon
                 ConnectionManager.readCharacteristic(characteristic)
             }
             capLayout.addView(readBlock)
-
         }
 
         if ((props and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
@@ -127,15 +123,15 @@ class ExpandableServiceListAdapter(
                             .map { it.toInt(2).toByte() }.toByteArray()
                         else -> text.toByteArray(Charsets.UTF_8)
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     icon.setImageResource(R.drawable.fail)
-                    statusText.text = "Failed to send: invalid input"
+                    statusText.text = context.getString(R.string.write_invalid_input)
                     return@setOnClickListener
                 }
 
                 if (bytes == null || bytes.isEmpty()) {
                     icon.setImageResource(R.drawable.fail)
-                    statusText.text = "Failed to send: empty input"
+                    statusText.text = context.getString(R.string.write_empty_input)
                     return@setOnClickListener
                 }
 
@@ -152,7 +148,6 @@ class ExpandableServiceListAdapter(
                 characteristic.value = bytes
                 ConnectionManager.writeCharacteristic(characteristic)
             }
-
             capLayout.addView(writeBlock)
         }
 
@@ -175,15 +170,15 @@ class ExpandableServiceListAdapter(
                             .map { it.toInt(2).toByte() }.toByteArray()
                         else -> text.toByteArray(Charsets.UTF_8)
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     icon.setImageResource(R.drawable.fail)
-                    statusText.text = "Failed to send: invalid input"
+                    statusText.text = context.getString(R.string.write_invalid_input)
                     return@setOnClickListener
                 }
 
                 if (bytes == null || bytes.isEmpty()) {
                     icon.setImageResource(R.drawable.fail)
-                    statusText.text = "Failed to send: empty input"
+                    statusText.text = context.getString(R.string.write_empty_input)
                     return@setOnClickListener
                 }
 
@@ -192,9 +187,8 @@ class ExpandableServiceListAdapter(
                 ConnectionManager.writeCharacteristic(characteristic)
 
                 icon.setImageResource(R.drawable.success)
-                statusText.text = "Sent: $text"
+                statusText.text = context.getString(R.string.write_sent_status, text)
             }
-
             capLayout.addView(writeNoRspBlock)
         }
 
@@ -218,9 +212,7 @@ class ExpandableServiceListAdapter(
                     ConnectionManager.notificationViewMap.remove(characteristic.uuid)
                 }
             }
-
             capLayout.addView(notifyBlock)
-
         }
 
         if ((props and BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0) {
@@ -241,10 +233,8 @@ class ExpandableServiceListAdapter(
                     ConnectionManager.notificationViewMap.remove(characteristic.uuid)
                 }
             }
-
             capLayout.addView(indicateBlock)
         }
-
 
         view.setOnClickListener {
             val isExpanded = capLayout.isVisible

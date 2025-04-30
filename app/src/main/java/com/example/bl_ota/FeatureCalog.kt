@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.bl_ota
 
 import android.annotation.SuppressLint
@@ -16,12 +18,12 @@ import java.io.File
 import java.util.UUID
 
 const val stm_ota_service_uuid: String = "0000FE20-cc7a-482a-984a-7f2ed5b3e58f"
-const val stm_ota_base_address_characteristic_uuid: String = "000FE22-8e22-4541-9d4c-21edae82ed19"
-const val stm_ota_ota_raw_data_characteristic_uuid: String = "000FE24-8e22-4541-9d4c-21edae82ed19"
+const val stm_ota_base_address_characteristic_uuid: String = "0000FE22-8e22-4541-9d4c-21edae82ed19"
+const val stm_ota_ota_raw_data_characteristic_uuid: String = "0000FE24-8e22-4541-9d4c-21edae82ed19"
 const val stm_ota_reboot_request_characteristic_uuid: String = "0000FE11-8e22-4541-9d4c-21edae82ed19"
 
 val stm_ota_file_upload_reboot_confirmation_characteristic_uuid: UUID? =
-    UUID.fromString("000FE23-8e22-4541-9d4c-21edae82ed19")
+    UUID.fromString("0000FE23-8e22-4541-9d4c-21edae82ed19")
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("MissingPermission", "SetTextI18n")
@@ -140,8 +142,8 @@ val featureCatalog = listOf(
                             ConnectionManager.bluetoothGatt = null
 
                             AlertDialog.Builder(activity)
-                                .setTitle("Uppdatering slutförd")
-                                .setMessage("Enheten bekräftade OTA-uppdatering och startar nu om.\nDu återgår till skanningsläget.")
+                                .setTitle("Update complete")
+                                .setMessage("The device has confirmed the OTA-update and will restart.\nReturning to scan activity.")
                                 .setCancelable(false)
                                 .setPositiveButton("OK") { _, _ ->
                                     val intent = Intent(activity, ScanActivity::class.java)
@@ -218,9 +220,7 @@ val featureCatalog = listOf(
 
                 statusText.text = "Reboot command sent"
 
-                // Vänta lite så att skrivningen hinner gå iväg (just in case)
                 button.postDelayed({
-                    // Försök att städa upp anslutningen och visa dialog
                     val context = view.context
                     if (context is ServiceControlActivity && !context.isFinishing) {
                         ConnectionManager.bluetoothGatt?.refresh()
@@ -229,7 +229,7 @@ val featureCatalog = listOf(
 
                         AlertDialog.Builder(context)
                             .setTitle("Reboot request sent")
-                            .setMessage("characteristic is of type WRITE_TYPE_NO_RESPOSE reset is assumed returning to scanning.")
+                            .setMessage("characteristic is of type WRITE_TYPE_NO_RESPONSE reset is assumed returning to scanning.")
                             .setCancelable(false)
                             .setPositiveButton("OK") { _, _ ->
                                 val intent = Intent(context, ScanActivity::class.java)
@@ -241,7 +241,6 @@ val featureCatalog = listOf(
                     }
                 }, 200)
             }
-
         }
     )
 )

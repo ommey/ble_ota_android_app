@@ -8,8 +8,6 @@ import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import com.example.bl_ota.DiscoveredFeature
-import com.example.bl_ota.R
 
 class FeatureExpandableAdapter(
     private val context: Context,

@@ -5,7 +5,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.eclipse.paho.client.mqttv3.*
 import org.json.JSONObject
-import java.text.SimpleDateFormat
 import java.util.*
 import org.eclipse.paho.client.mqttv3.MqttException
 
@@ -117,41 +116,11 @@ object MqttManager{
         Log.d("MQTT", "🧹 Cleared firmware callback")
     }
 
-    fun reportUpdateStatus(device: String, status: String) {
-        if (this::mqttClient.isInitialized && mqttClient.isConnected) {
-            val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date())
-            val json = JSONObject().apply {
-                put("token", token)
-                put("deviceId", device)
-                put("status", status)
-                put("timestamp", timestamp)
-                latestFirmwareId?.let { put("firmwareId", it) }
-            }
-            val message = MqttMessage(json.toString().toByteArray()).apply { qos = 1 }
-            try {
-                mqttClient.publish("ota/status", message)
-                Log.d("MQTT", "📬 OTA status sent: $json")
-            } catch (e: Exception) {
-                Log.e("MQTT", "❌ Failed to publish OTA status", e)
-            }
-        } else {
-            Log.w("MQTT", "⚠️ MQTT client not connected – OTA status not sent.")
-        }
-    }
-
-    fun subscribeToAvailableFirmware(startBleFirmwareTransfer: (ByteArray) -> Unit) {
-        safeSubscribe("firmware/available") { _, _ ->
-            Log.d("MQTT", "📣 New firmware available, sending request...")
-            subscribeToFirmwareForDevice(username, startBleFirmwareTransfer)
-        }
-    }
-
     fun subscribeToFirmwareForDevice(device: String, startBleFirmwareTransfer: (ByteArray) -> Unit) {
         val topic = "firmware/data/$device"
         safeSubscribe(topic) { _, message ->
             try {
                 val json = JSONObject(String(message.payload))
-                val version = json.getString("version")
                 val firmwareId = json.getInt("firmwareId")
                 val firmwareBase64 = json.getString("file")
 
@@ -208,6 +177,7 @@ object MqttManager{
 
     fun disconnect() {
         if (this::mqttClient.isInitialized && mqttClient.isConnected) {
+            logout()
             mqttClient.disconnect()
             Log.d("MQTT", "🔌 Disconnected from broker")
         }

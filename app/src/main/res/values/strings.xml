@@ -19,5 +19,15 @@
     <string name="cloud_file">Cloud file</string>
     <string name="firmware_meta">Version: %1$s • Uploaded: %2$s</string>
     <string name="rssi_value">RSSI: %1$d</string>
-
+    <string name="device_address_missing">Device address is missing</string>
+    <string name="connected_to_device">Connected to %1$s</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="advertising_services_and_characteristics">Advertising %1$d services and %2$d characteristics</string>
+    <string name="read_failed">Read failed</string>
+    <string name="sent_value">Sent: %1$s</string>
+    <string name="not_confirmed_value">Not confirmed: %1$s</string>
+    <string name="reading_status">Reading…</string>
+    <string name="write_invalid_input">Failed to send: invalid input</string>
+    <string name="write_empty_input">Failed to send: empty input</string>
+    <string name="write_sent_status">Sent: %1$s</string>
 </resources>

@@ -1,10 +1,16 @@
-// ConnectionManager.kt
+@file:Suppress("DEPRECATION")
+
 package com.example.bl_ota
 
 import android.Manifest
-import android.R.attr.value
 import android.annotation.SuppressLint
-import android.bluetooth.*
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
 import android.os.Build
 import android.os.Handler
@@ -12,11 +18,11 @@ import android.os.Looper
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
-import com.example.bl_ota.R
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
 
 private const val GATT_MAX_MTU_SIZE = 517
@@ -51,7 +57,6 @@ object ConnectionManager {
         @SuppressLint("MissingPermission")
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             val deviceAddress = gatt.device.address
-            val deviceName = gatt.device.name
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
@@ -62,15 +67,12 @@ object ConnectionManager {
                         }
                         connected = true
                         onConnectionStateChange?.invoke(gatt)
-
                     }
                     BluetoothProfile.STATE_DISCONNECTED -> {
                         Log.i("GattCallback", "Disconnected from $deviceAddress")
                         onConnectionStateChange?.invoke(gatt)
                         connected = false
                         gatt.close()
-
-
                     }
                 }
             } else {
@@ -89,8 +91,7 @@ object ConnectionManager {
             val success = status == BluetoothGatt.GATT_SUCCESS
             onCharacteristicRead?.invoke(characteristic, characteristic.value, success)
         }
-
-
+        
         override fun onCharacteristicWrite(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic,
@@ -99,29 +100,21 @@ object ConnectionManager {
             val success = status == BluetoothGatt.GATT_SUCCESS
             onCharacteristicWrite?.invoke(characteristic, success)
         }
-
-
+        
         override fun onReadRemoteRssi(gatt: BluetoothGatt?, rssi: Int, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 onRssiRead?.invoke(rssi)
             }
         }
 
-        override fun onDescriptorWrite(
-            gatt: BluetoothGatt,
-            descriptor: BluetoothGattDescriptor,
-            status: Int
-        ) {
+        override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
             val success = status == BluetoothGatt.GATT_SUCCESS
             Log.i("GattCallback", "Descriptor write completed for ${descriptor.uuid}, success=$success")
 
             if (descriptor.uuid == UUID.fromString(CCC_DESCRIPTOR_UUID) && success) {
                 val charUUID = descriptor.characteristic.uuid
-                // Kolla om detta är din OTA-confirmation characteristic
                 if (charUUID == stm_ota_file_upload_reboot_confirmation_characteristic_uuid) {
                     Handler(Looper.getMainLooper()).post {
-                        // Gör det du nu gör EFTER Thread.sleep(100)
-                        // Exempel: kalla vidare på OTA-sekvensen
                         startOtaProcedure?.invoke()
                     }
                 }
@@ -138,10 +131,8 @@ object ConnectionManager {
             }
         }
 
-        override fun onCharacteristicChanged(
-            gatt: BluetoothGatt,
-            characteristic: BluetoothGattCharacteristic
-        ) {
+        @SuppressLint("SetTextI18n")
+        override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
             if (characteristic.uuid == stm_ota_file_upload_reboot_confirmation_characteristic_uuid) {
                 val value = characteristic.value
                 if (value.isNotEmpty() && value[0] == 0x01.toByte()) {
@@ -152,42 +143,32 @@ object ConnectionManager {
                     }
                 }
             }
+            
+            val uuid = characteristic.uuid.toString().lowercase()
 
-
-
-                 val uuid = characteristic.uuid.toString().lowercase()
-
-                 // ✅ Step 1: Treat ANY value as confirmation
-                 if (uuid == stm_ota_file_upload_reboot_confirmation_characteristic_uuid.toString().lowercase()) {
-                     Handler(Looper.getMainLooper()).post {
-                         // Toast.makeText(gatt.device.context, "OTA complete. Confirmation received.", Toast.LENGTH_LONG).show()
-                         Log.i("OTA", "OTA confirmation characteristic changed (value: ${characteristic.value?.joinToString(" ") { "0x%02X".format(it) }})")
-                         // Optional: auto-reboot logic here if needed
-                     }
-                     return
-                 }
-
-     // uppdaterar in icon om tillgänglig och textview
-                 val viewSet = notificationViewMap[characteristic.uuid] ?: indicationViewMap[characteristic.uuid] ?: return
-                 val (statusText, icon, getDiff) = viewSet
-
-                 val sinceLast = getDiff()
-                 val nowStr = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
-
+             if (uuid == stm_ota_file_upload_reboot_confirmation_characteristic_uuid.toString().lowercase()) {
                  Handler(Looper.getMainLooper()).post {
-                     icon.setImageResource(R.drawable.response)
-                     statusText.text = "Last at: $nowStr\nΔ ${sinceLast}ms"
+                     Log.i("OTA", "OTA confirmation characteristic changed (value: ${characteristic.value?.joinToString(" ") { "0x%02X".format(it) }})")
                  }
+                 return
+             }
 
-                 Handler(Looper.getMainLooper()).postDelayed({
-                     icon.setImageResource(R.drawable.success)
-                 }, 200)
+             val viewSet = notificationViewMap[characteristic.uuid] ?: indicationViewMap[characteristic.uuid] ?: return
+             val (statusText, icon, getDiff) = viewSet
 
+             val sinceLast = getDiff()
+             val nowStr = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+
+             Handler(Looper.getMainLooper()).post {
+                 icon.setImageResource(R.drawable.response)
+                 statusText.text = "Last at: $nowStr\nΔ ${sinceLast}ms"
+             }
+
+             Handler(Looper.getMainLooper()).postDelayed({
+                 icon.setImageResource(R.drawable.success)
+             }, 200)
         }
-
-
-
-
+        
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 onServicesDiscovered?.invoke(gatt)
@@ -200,10 +181,7 @@ object ConnectionManager {
     fun connectToDevice(context: Context, device: BluetoothDevice) {
         enqueueOperation(BleOperationType.Connect(device, context))
     }
-
-
-
-
+    
     @Synchronized
     private fun enqueueOperation(operation: BleOperationType) {
         operationQueue.add(operation)
@@ -227,16 +205,11 @@ object ConnectionManager {
         Log.i("ConnectionManager", "Connecting to ${device.address}")
         device.connectGatt(context, false, gattCallback)
     }
-
-
+    
     @Synchronized
     private fun signalEndOfOperation() {
         pendingOperation = null
         if (operationQueue.isNotEmpty()) doNextOperation()
-    }
-
-    fun toggleNotifications(characteristic: BluetoothGattCharacteristic) {
-
     }
 
     @SuppressLint("MissingPermission")
@@ -293,7 +266,7 @@ object ConnectionManager {
     @SuppressLint("MissingPermission")
     fun enableIndications(characteristic: BluetoothGattCharacteristic) {
         val gatt = bluetoothGatt ?: return
-        gatt.setCharacteristicNotification(characteristic, true) // ✅ Saknades i din version
+        gatt.setCharacteristicNotification(characteristic, true) 
 
         val cccdUuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         val descriptor = characteristic.getDescriptor(cccdUuid)
@@ -304,20 +277,15 @@ object ConnectionManager {
 
         if (descriptor != null) {
             if (bluetoothGatt?.writeDescriptor(descriptor, value) == BluetoothStatusCodes.SUCCESS) {
-                //bleEventListener?.onShowToast("🔔 Notifications activated")
-                Log.d("DESCPRIPTOR", "indications for ${characteristic.toString()}")
+                Log.d("DESCRIPTOR", "indications for $characteristic")
                 return
             }
         }
-        //bleEventListener?.onShowToast("❌ Couldn't activate notifications")
-
-
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun resetConnectionHandler(){
         bluetoothGatt?.apply {
-           // refresh()
             close()
         }
         bluetoothGatt = null
@@ -335,8 +303,7 @@ object ConnectionManager {
         indicationViewMap.clear()
         onOtaConfirmed = null
     }
-
-
+    
     @SuppressLint("PrivateApi")
     fun BluetoothGatt.refresh(): Boolean {
         return try {
@@ -348,6 +315,5 @@ object ConnectionManager {
             false
         }
     }
-
 }
 

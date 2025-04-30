@@ -3,15 +3,10 @@ package com.example.bl_ota
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import android.widget.Switch
 import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
@@ -25,19 +20,15 @@ import androidx.recyclerview.widget.RecyclerView
 
 class ScanActivity : AppCompatActivity() {
     private lateinit var bluetoothScanner: BluetoothScanner
-    private lateinit var filePickerLauncher: ActivityResultLauncher<Intent>
     private lateinit var deviceRecycler: RecyclerView
     private lateinit var deviceList: ArrayList<DeviceData>
     private lateinit var swipeRefreshLayout: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-
-
     private var isScanning = false
-//        set(value) {
-//            field = value
-//            runOnUiThread {
-//                findViewById<Switch>(R.id.bleSwitch)?.text = if (value) "Stop Scan" else "Start Scan"
-//            }
-//        }
+    private var currentSort: SortOption = SortOption.LAST_SEEN
+
+    enum class SortOption {
+        RSSI, DEVICE_TYPE, NAME, ADDRESS, LAST_SEEN
+    }
 
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,11 +40,6 @@ class ScanActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-
-
-
-
 
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
         swipeRefreshLayout.setOnRefreshListener {
@@ -86,51 +72,26 @@ class ScanActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        //val selectedBinaryText = findViewById<TextView>(R.id.selectedBinaryText)
-        val RSSITextView = findViewById<TextView>(R.id.RSSITextView)
+        val rssiTextView = findViewById<TextView>(R.id.RSSITextView)
         val deviceTypeTextView = findViewById<TextView>(R.id.DeviceTypeTextView)
         val deviceNameTextView = findViewById<TextView>(R.id.DeviceNameTextView)
         val deviceAddressTextView = findViewById<TextView>(R.id.DeviceAddressTextView)
         val lastSeenTextView = findViewById<TextView>(R.id.LastSeenTextView_yymmdd)
-        //val bleSwitch = findViewById<Switch>(R.id.bleSwitch)
 
         val sortHandler: (TextView) -> Unit = { view ->
-            val sortBy = view.text.toString()
-            Toast.makeText(this, "Sorting by $sortBy", Toast.LENGTH_SHORT).show()
-            // TODO: GÖR att det sorteras, kanske enum
+            when (view.id) {
+                R.id.RSSITextView -> sortDeviceList(SortOption.RSSI)
+                R.id.DeviceTypeTextView -> sortDeviceList(SortOption.DEVICE_TYPE)
+                R.id.DeviceNameTextView -> sortDeviceList(SortOption.NAME)
+                R.id.DeviceAddressTextView -> sortDeviceList(SortOption.ADDRESS)
+                R.id.LastSeenTextView_yymmdd -> sortDeviceList(SortOption.LAST_SEEN)
+            }
         }
-        listOf(RSSITextView, deviceTypeTextView, deviceNameTextView, deviceAddressTextView, lastSeenTextView)
-            .forEach { it.setOnClickListener { _ -> sortHandler(it) } }
 
-//        bleSwitch.setOnClickListener {
-//            if (isScanning){
-//                stopBleScan()
-//                resetDeviceListAndConnections()
-//            } else startBleScan()
-//        }
-
-//        filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-//            if (result.resultCode == RESULT_OK) {
-//                result.data?.data?.let { uri ->
-//                    val fileName = FilePickerHelper.getFileNameFromUri(this, uri)
-//                    selectedBinaryText.text = fileName?.let { getString(R.string.selectedBinaryName, it) }
-//                        ?: "Unknown file selected"
-//                }
-//            }
-//        }
-
-//        selectedBinaryText.setOnClickListener {
-//            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-//                type = "*/*"
-//                addCategory(Intent.CATEGORY_OPENABLE)
-//            }
-//            filePickerLauncher.launch(intent)
-//        }
-
+        listOf(rssiTextView, deviceTypeTextView, deviceNameTextView, deviceAddressTextView, lastSeenTextView)
+            .forEach { it.setOnClickListener { _ -> sortHandler(it) }
+        }
     }
-
-
-
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     private fun startBleScan() {
@@ -221,25 +182,17 @@ class ScanActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission", "NotifyDataSetChanged")
     fun resetDeviceListAndConnections() {
-        // 1. Stoppa scanning
-        //stopBleScan()
-
-        // 2. Töm listan med hittade enheter
         deviceList.clear()
         deviceRecycler.adapter?.notifyDataSetChanged()
         ConnectionManager.resetConnectionHandler()
-
-        // 3. Nollställ alla ConnectionManager callbacks
-
     }
-
 
     private val bluetoothEnablingResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) {
+        if (result.resultCode != RESULT_OK) {
             promptEnableBluetooth()
         }
     }
@@ -250,6 +203,20 @@ class ScanActivity : AppCompatActivity() {
             bluetoothEnablingResult.launch(bluetoothScanner.enableBluetoothIntent())
         }
     }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private fun sortDeviceList(option: SortOption) {
+        currentSort = option
+        when (option) {
+            SortOption.RSSI -> deviceList.sortByDescending { it.rssi }
+            SortOption.DEVICE_TYPE -> deviceList.sortBy { it.deviceType.name }
+            SortOption.NAME -> deviceList.sortBy { it.name.lowercase() }
+            SortOption.ADDRESS -> deviceList.sortBy { it.address }
+            SortOption.LAST_SEEN -> deviceList.sortByDescending { it.lastSeen }
+        }
+        deviceRecycler.adapter?.notifyDataSetChanged()
+    }
+
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1
