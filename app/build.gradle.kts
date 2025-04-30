@@ -53,6 +53,9 @@ dependencies {
         // ✅ Fix för LocalBroadcastManager med AndroidX, pga deprecation måste denna användas för att ersätta gamla localbroadcastmanager som inte finns kvar
         implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
+        implementation("androidx.lifecycle:lifecycle-process:2.6.2")
+
+
         testImplementation(libs.junit)
         androidTestImplementation(libs.androidx.junit)
         androidTestImplementation(libs.androidx.espresso.core)

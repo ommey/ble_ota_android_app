@@ -16,8 +16,12 @@ object MqttManager{
     private lateinit var username: String
     private val activeSubscriptions = mutableSetOf<String>()
     private var retrieveFirmwareCallback: ((List<CloudFile>) -> Unit)? = null
+    private var isLoggedIn = false
 
     suspend fun connectAndSubscribe(user: String, pin: String, onConnected: () -> Unit, onIncorrectInput: (String) -> Unit, onError: (Throwable) -> Unit) {
+        if (isLoggedIn){
+            disconnect()
+        }
         withContext(Dispatchers.IO) {
             try {
                 username = user.replace(" ", "")
@@ -56,7 +60,7 @@ object MqttManager{
                     qos = 1
                 }
                 mqttClient.publish("login", message)
-
+                isLoggedIn = true
             } catch (e: Exception) {
                 Log.e("MQTT", "❌ Connection or subscription failed", e)
                 onError(e)
@@ -65,7 +69,7 @@ object MqttManager{
     }
 
     fun retrieveAvailableFirmware(onResult: (List<CloudFile>) -> Unit, onError: (Throwable) -> Unit = {}) {
-        val topic = "firmware/List/$username"
+        val topic = "firmware/list/$username"
 
         retrieveFirmwareCallback = onResult
 
@@ -177,6 +181,7 @@ object MqttManager{
 
     fun disconnect() {
         if (this::mqttClient.isInitialized && mqttClient.isConnected) {
+            isLoggedIn = false
             logout()
             mqttClient.disconnect()
             Log.d("MQTT", "🔌 Disconnected from broker")
