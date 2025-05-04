@@ -22,6 +22,9 @@ const val stm_ota_base_address_characteristic_uuid: String = "0000FE22-8e22-4541
 const val stm_ota_ota_raw_data_characteristic_uuid: String = "0000FE24-8e22-4541-9d4c-21edae82ed19"
 const val stm_ota_reboot_request_characteristic_uuid: String = "0000FE11-8e22-4541-9d4c-21edae82ed19"
 
+var otaStartTime: Long = 0
+var otaEndTime: Long = 0
+
 val stm_ota_file_upload_reboot_confirmation_characteristic_uuid: UUID? =
     UUID.fromString("0000FE23-8e22-4541-9d4c-21edae82ed19")
 
@@ -136,6 +139,10 @@ val featureCatalog = listOf(
 
                     ConnectionManager.enableIndications(confirmationChar)
                     ConnectionManager.onOtaConfirmed = {
+                        otaEndTime = System.currentTimeMillis()
+                        val durationMillis = otaEndTime - otaStartTime
+                        val seconds = durationMillis / 1000
+
                         if (!activity.isFinishing) {
                             ConnectionManager.bluetoothGatt?.refresh()
                             ConnectionManager.bluetoothGatt?.close()
@@ -143,7 +150,7 @@ val featureCatalog = listOf(
 
                             AlertDialog.Builder(activity)
                                 .setTitle("Update complete")
-                                .setMessage("The device has confirmed the OTA-update and will restart.\nReturning to scan activity.")
+                                .setMessage("The device has confirmed the OTA-update. \nOTA-update completed in $seconds seconds.\nReturning to scan activity.")
                                 .setCancelable(false)
                                 .setPositiveButton("OK") { _, _ ->
                                     val intent = Intent(activity, ScanActivity::class.java)
@@ -155,6 +162,8 @@ val featureCatalog = listOf(
                         }
                     }
                     ConnectionManager.startOtaProcedure = {
+                        otaStartTime = System.currentTimeMillis()
+
                         baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
                         baseAddressChar.value = byteArrayOf(0x02, 0x00, 0x70, 0x00)
                         ConnectionManager.writeCharacteristic(baseAddressChar)
@@ -173,6 +182,7 @@ val featureCatalog = listOf(
                                 Thread.sleep(40)
                                 activity.runOnUiThread {
                                     progressBar.progress = index + 1
+                                    selectedFileTextView.text = "Chunk $index of ${chunks.size} written"
                                 }
                             }
 
