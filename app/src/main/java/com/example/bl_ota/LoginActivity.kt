@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MqttManager.init(applicationContext)
         Thread.sleep(1000)
         installSplashScreen()
         enableEdgeToEdge()
