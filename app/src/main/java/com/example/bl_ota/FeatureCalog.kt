@@ -16,6 +16,8 @@ import com.example.bl_ota.ConnectionManager.refresh
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.io.File
 import java.util.UUID
+import android.os.Handler
+import android.os.Looper
 
 const val stm_ota_service_uuid: String = "0000FE20-cc7a-482a-984a-7f2ed5b3e58f"
 const val stm_ota_base_address_characteristic_uuid: String = "0000FE22-8e22-4541-9d4c-21edae82ed19"
@@ -176,6 +178,9 @@ val featureCatalog = listOf(
                         otaDataChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 
                         Thread {
+                            val handler = Handler(Looper.getMainLooper())
+                            var confirmationReceived = false
+
                             chunks.forEachIndexed { index, chunk ->
                                 otaDataChar.value = chunk
                                 ConnectionManager.bluetoothGatt?.writeCharacteristic(otaDataChar)
@@ -193,6 +198,44 @@ val featureCatalog = listOf(
 
                             activity.runOnUiThread {
                                 statusText.text = "Awaiting confirmation..."
+                            }
+
+                            // Start a timeout: fail if no confirmation received within 5 seconds
+                            handler.postDelayed({
+                                if (!confirmationReceived) {
+                                    activity.runOnUiThread {
+                                        android.widget.Toast.makeText(activity, "❌ Update failed: no confirmation received", android.widget.Toast.LENGTH_LONG).show()
+                                        selectedFileTextView.text = "No file selected"
+                                        progressBar.progress = 0
+                                        statusText.text = "Update failed"
+                                    }
+                                }
+                            }, 5000)
+
+                            // This runs when confirmation is received
+                            ConnectionManager.onOtaConfirmed = {
+                                confirmationReceived = true
+                                otaEndTime = System.currentTimeMillis()
+                                val durationMillis = otaEndTime - otaStartTime
+                                val seconds = durationMillis / 1000
+
+                                if (!activity.isFinishing) {
+                                    ConnectionManager.bluetoothGatt?.refresh()
+                                    ConnectionManager.bluetoothGatt?.close()
+                                    ConnectionManager.bluetoothGatt = null
+
+                                    AlertDialog.Builder(activity)
+                                        .setTitle("Update complete")
+                                        .setMessage("The device has confirmed the OTA-update. \nOTA-update completed in $seconds seconds.\nReturning to scan activity.")
+                                        .setCancelable(false)
+                                        .setPositiveButton("OK") { _, _ ->
+                                            val intent = Intent(activity, ScanActivity::class.java)
+                                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                            activity.startActivity(intent)
+                                            activity.finish()
+                                        }
+                                        .show()
+                                }
                             }
                         }.start()
                     }
