@@ -18,21 +18,169 @@ import java.io.File
 import java.util.UUID
 import android.os.Handler
 import android.os.Looper
+import android.widget.Toast
 
 const val stm_ota_service_uuid: String = "0000FE20-cc7a-482a-984a-7f2ed5b3e58f"
 const val stm_ota_base_address_characteristic_uuid: String = "0000FE22-8e22-4541-9d4c-21edae82ed19"
 const val stm_ota_ota_raw_data_characteristic_uuid: String = "0000FE24-8e22-4541-9d4c-21edae82ed19"
 const val stm_ota_reboot_request_characteristic_uuid: String = "0000FE11-8e22-4541-9d4c-21edae82ed19"
-
-var otaStartTime: Long = 0
-var otaEndTime: Long = 0
-
 val stm_ota_file_upload_reboot_confirmation_characteristic_uuid: UUID? =
     UUID.fromString("0000FE23-8e22-4541-9d4c-21edae82ed19")
 
+
+const val ble_fota_service_uuid: String = "b1e0f07a-0000-0000-0000-000baad0b055"
+const val ble_fota_base_address_characteristic_uuid: String = "b1e0f07a-0001-0000-0000-000baad0b055"
+const val ble_fota_raw_data_characteristic_uuid: String = "b1e0f07a-0003-0000-0000-000baad0b055"
+const val ble_fota_reboot_request_characteristic_uuid: String = "b1e0f07a-0004-0000-0000-000baad0b055"
+
+//val my_boot_service_uuid = UUID.fromString("b1e0f07a-0000-0000-0000-00000baad0b055")
+//val my_boot_base_char_uuid = UUID.fromString("b1e0f07a-0001-0000-0000-00000baad0b055")
+//val my_boot_raw_data_char_uuid = UUID.fromString("b1e0f07a-0003-0000-0000-00000baad0b055")
+//val my_boot_reboot_char_uuid = UUID.fromString("b1e0f07a-0004-0000-0000-00000baad0b055")
+
+
+
+var otaStartTime: Long = 0
+var otaEndTime: Long = 0
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("MissingPermission", "SetTextI18n")
 val featureCatalog = listOf(
+    DiscoveredFeature(
+        name = "My Bootloader OTA",
+        layoutResId = R.layout.feature_stm_ota,
+        serviceUUIDs = listOf(UUID.fromString(ble_fota_service_uuid)),
+        characteristicUUIDs = listOf(
+            UUID.fromString(ble_fota_base_address_characteristic_uuid),
+            UUID.fromString(ble_fota_raw_data_characteristic_uuid)
+        ),
+        binder = { view, gatt ->
+            val statusText = view.findViewById<TextView>(R.id.statusTextView)
+            val progressBar = view.findViewById<ProgressBar>(R.id.updateProgressBar)
+            val selectFileButton = view.findViewById<Button>(R.id.selectFileButton)
+            val selectCloudFileButton = view.findViewById<Button>(R.id.selectCloudFileButton)
+            val selectedFileTextView = view.findViewById<TextView>(R.id.selectedFileTextView)
+            val activity = view.context as? ServiceControlActivity
+            var selectedFileUri: Uri? = null
+            var selectedFirmwareFile: File? = null
+
+            if (activity != null) {
+                selectFileButton.setOnClickListener {
+                    activity.launchFilePicker { uri: Uri ->
+                        selectedFileUri = uri
+                        selectedFirmwareFile = null
+                        val fileName = FilePickerHelper.getFileNameFromUri(activity, uri)
+                        selectedFileTextView.text = fileName ?: "Unknown file"
+                    }
+                }
+
+                selectCloudFileButton.setOnClickListener {
+                    Toast.makeText(activity, "Cloud picker not implemented for custom loader", Toast.LENGTH_SHORT).show()
+                }
+
+                val startUpdateButton = view.findViewById<Button>(R.id.startUpdateButton)
+                startUpdateButton.setOnClickListener {
+                    val binary = when {
+                        selectedFileUri != null -> activity.contentResolver.openInputStream(selectedFileUri!!)?.use { it.readBytes() }
+                        selectedFirmwareFile != null -> selectedFirmwareFile!!.readBytes()
+                        else -> {
+                            statusText.text = "No file selected"
+                            return@setOnClickListener
+                        }
+                    } ?: return@setOnClickListener
+
+                    val mtu = ConnectionManager.negotiatedMtu
+                    val chunkSize = mtu - 3
+
+                    val baseAddressChar = gatt.getCharacteristic(UUID.fromString(ble_fota_base_address_characteristic_uuid))
+                    val otaDataChar = gatt.getCharacteristic(UUID.fromString(ble_fota_raw_data_characteristic_uuid))
+
+                    if (baseAddressChar == null || otaDataChar == null) {
+                        statusText.text = "OTA characteristics not found"
+                        return@setOnClickListener
+                    }
+
+                    otaStartTime = System.currentTimeMillis()
+
+                    baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                    baseAddressChar.value = byteArrayOf(0x02, 0x00, 0x00, 0x00)
+                    ConnectionManager.writeCharacteristic(baseAddressChar)
+                    Thread.sleep(20)
+
+                    val chunks = binary.toList().chunked(chunkSize).map { it.toByteArray() }
+                    progressBar.max = chunks.size
+                    progressBar.progress = 0
+
+                    otaDataChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+
+                    Thread {
+                        chunks.forEachIndexed { index, chunk ->
+                            otaDataChar.value = chunk
+                            ConnectionManager.bluetoothGatt?.writeCharacteristic(otaDataChar)
+                            Thread.sleep(50)
+                            activity.runOnUiThread {
+                                progressBar.progress = index + 1
+                                selectedFileTextView.text = "Chunk $index of ${chunks.size} written"
+                            }
+                        }
+
+                        baseAddressChar.value = byteArrayOf(0x07, 0x00, 0x00, 0x00)
+                        ConnectionManager.writeCharacteristic(baseAddressChar)
+                        Thread.sleep(20)
+
+                        otaEndTime = System.currentTimeMillis()
+                        val seconds = (otaEndTime - otaStartTime) / 1000
+
+                        activity.runOnUiThread {
+                            AlertDialog.Builder(activity)
+                                .setTitle("Upload Sent")
+                                .setMessage("OTA complete. Sent in $seconds seconds. Reboot should follow.")
+                                .setPositiveButton("OK", null)
+                                .show()
+                        }
+                    }.start()
+                }
+            }
+        }
+    ),
+
+    DiscoveredFeature(
+        name = "My Bootloader Reboot",
+        layoutResId = R.layout.feature_reboot_request,
+        serviceUUIDs = listOf(UUID.fromString(ble_fota_service_uuid)),
+        characteristicUUIDs = listOf(UUID.fromString(ble_fota_reboot_request_characteristic_uuid)),
+        binder = { view, gatt ->
+            val rebootChar = gatt.getCharacteristic(UUID.fromString(ble_fota_reboot_request_characteristic_uuid))
+            val button = view.findViewById<Button>(R.id.rebootButton)
+            val statusText = view.findViewById<TextView>(R.id.rebootStatusText)
+
+            if (rebootChar == null) {
+                button.isEnabled = false
+                statusText.text = "Characteristic not found"
+                return@DiscoveredFeature
+            }
+
+            button.setOnClickListener {
+                rebootChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                rebootChar.value = byteArrayOf(0x01, 0x10, 0x70)
+                ConnectionManager.writeCharacteristic(rebootChar)
+                statusText.text = "Reboot command sent"
+
+                button.postDelayed({
+                    val context = view.context
+                    if (context is ServiceControlActivity && !context.isFinishing) {
+                        ConnectionManager.bluetoothGatt?.refresh()
+                        ConnectionManager.bluetoothGatt?.close()
+                        ConnectionManager.bluetoothGatt = null
+
+                        val intent = Intent(context, ScanActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        context.startActivity(intent)
+                        context.finish()
+                    }
+                }, 200)
+            }
+        }
+    ),
     DiscoveredFeature(
         name = "STM OTA",
         layoutResId = R.layout.feature_stm_ota,
@@ -184,7 +332,7 @@ val featureCatalog = listOf(
                             chunks.forEachIndexed { index, chunk ->
                                 otaDataChar.value = chunk
                                 ConnectionManager.bluetoothGatt?.writeCharacteristic(otaDataChar)
-                                Thread.sleep(40)
+                                Thread.sleep(20)
                                 activity.runOnUiThread {
                                     progressBar.progress = index + 1
                                     selectedFileTextView.text = "Chunk $index of ${chunks.size} written"
