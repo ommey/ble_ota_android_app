@@ -110,12 +110,10 @@ object MqttManager {
     }
 
 
-    fun retrieveAvailableFirmware(onResult: (List<CloudFile>) -> Unit, onError: (Throwable) -> Unit = {}) {
+    fun retrieveAvailableFirmware(compatibility: String, onResult: (List<CloudFile>) -> Unit, onError: (Throwable) -> Unit = {}) {
         val topic = "firmware/list/$username"
 
-
         retrieveFirmwareCallback = onResult
-
 
         safeSubscribe(topic) { _, message ->
             val callback = retrieveFirmwareCallback
@@ -124,12 +122,10 @@ object MqttManager {
                 return@safeSubscribe
             }
 
-
             try {
                 val json = JSONObject(String(message.payload))
                 val firmwareArray = json.getJSONArray("files")
                 val result = mutableListOf<CloudFile>()
-
 
                 for (i in 0 until firmwareArray.length()) {
                     val fw = firmwareArray.getJSONObject(i)
@@ -137,24 +133,21 @@ object MqttManager {
                     val version = fw.getString("version")
                     val date = fw.optString("uploaded", "N/A")
 
-
                     result.add(CloudFile(name, version, date))
                 }
 
-
                 callback(result)
-
 
             } catch (e: Exception) {
                 onError(e)
             }
         }
 
-
         try {
             val requestPayload = JSONObject().apply {
                 put("token", token ?: "")
                 put("user", username)
+                put("compatibility", compatibility)
             }
             val msg = MqttMessage(requestPayload.toString().toByteArray()).apply { qos = 1 }
             mqttClient.publish("firmware/list", msg)

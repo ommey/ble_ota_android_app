@@ -8,7 +8,7 @@
         android:id="@+id/rebootStatusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Reboot device now?"
+        android:text="Reboot device, into BLE loader mode now?"
         android:textSize="18sp" />
 
     <Button

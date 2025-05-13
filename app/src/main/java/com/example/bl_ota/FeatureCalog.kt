@@ -46,7 +46,7 @@ var otaEndTime: Long = 0
 @SuppressLint("MissingPermission", "SetTextI18n")
 val featureCatalog = listOf(
     DiscoveredFeature(
-        name = "My Bootloader OTA",
+        name = "BLE FoTA",
         layoutResId = R.layout.feature_stm_ota,
         serviceUUIDs = listOf(UUID.fromString(ble_fota_service_uuid)),
         characteristicUUIDs = listOf(
@@ -63,6 +63,47 @@ val featureCatalog = listOf(
             var selectedFileUri: Uri? = null
             var selectedFirmwareFile: File? = null
 
+            fun showCloudFilePicker(activity: ServiceControlActivity) {
+                MqttManager.retrieveAvailableFirmware(
+                    "BLE_FoTA",
+                    onResult = { cloudFiles ->
+                        activity.runOnUiThread {
+                            val bottomSheetView = activity.layoutInflater.inflate(R.layout.bottom_sheet_file_selector, null)
+                            val dialog = BottomSheetDialog(activity)
+                            dialog.setContentView(bottomSheetView)
+
+                            val recyclerView = bottomSheetView.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.cloudFileRecyclerView)
+                            recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(activity)
+                            recyclerView.adapter = CloudFileAdapter(cloudFiles) { selectedFile ->
+                                val deviceId = gatt.device.address
+
+                                MqttManager.sendFirmwareRequest(deviceId, selectedFile.version)
+                                MqttManager.subscribeToFirmwareForDevice(deviceId) { firmwareBytes ->
+                                    activity.runOnUiThread {
+                                        selectedFirmwareFile = File.createTempFile("firmware_", ".bin", activity.cacheDir)
+                                        selectedFirmwareFile!!.writeBytes(firmwareBytes)
+                                        selectedFileUri = null
+                                        selectedFileTextView.text = selectedFile.name
+                                        Toast.makeText(activity, "✅ Firmware ready: ${selectedFile.name}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                dialog.dismiss()
+                            }
+                            dialog.show()
+                        }
+                    },
+                    onError = { error ->
+                        activity.runOnUiThread {
+                            Toast.makeText(
+                                activity,
+                                "⚠️ Failed to fetch firmware list: ${error.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                )
+            }
+
             if (activity != null) {
                 selectFileButton.setOnClickListener {
                     activity.launchFilePicker { uri: Uri ->
@@ -74,25 +115,38 @@ val featureCatalog = listOf(
                 }
 
                 selectCloudFileButton.setOnClickListener {
-                    Toast.makeText(activity, "Cloud picker not implemented for custom loader", Toast.LENGTH_SHORT).show()
+                    showCloudFilePicker(activity)
                 }
 
                 val startUpdateButton = view.findViewById<Button>(R.id.startUpdateButton)
                 startUpdateButton.setOnClickListener {
-                    val binary = when {
-                        selectedFileUri != null -> activity.contentResolver.openInputStream(selectedFileUri!!)?.use { it.readBytes() }
-                        selectedFirmwareFile != null -> selectedFirmwareFile!!.readBytes()
+                    val binary: ByteArray? = when {
+                        selectedFileUri != null -> {
+                            activity.contentResolver.openInputStream(selectedFileUri!!)?.use { it.readBytes() }
+                        }
+                        selectedFirmwareFile != null -> {
+                            selectedFirmwareFile!!.readBytes()
+                        }
                         else -> {
                             statusText.text = "No file selected"
                             return@setOnClickListener
                         }
-                    } ?: return@setOnClickListener
+                    }
+
+                    if (binary == null) {
+                        statusText.text = "Failed to read file"
+                        return@setOnClickListener
+                    }
 
                     val mtu = ConnectionManager.negotiatedMtu
                     val chunkSize = mtu - 3
 
-                    val baseAddressChar = gatt.getCharacteristic(UUID.fromString(ble_fota_base_address_characteristic_uuid))
-                    val otaDataChar = gatt.getCharacteristic(UUID.fromString(ble_fota_raw_data_characteristic_uuid))
+                    val baseAddressChar = gatt.getCharacteristic(
+                        UUID.fromString(ble_fota_base_address_characteristic_uuid)
+                    )
+                    val otaDataChar = gatt.getCharacteristic(
+                        UUID.fromString(ble_fota_raw_data_characteristic_uuid)
+                    )
 
                     if (baseAddressChar == null || otaDataChar == null) {
                         statusText.text = "OTA characteristics not found"
@@ -101,7 +155,8 @@ val featureCatalog = listOf(
 
                     otaStartTime = System.currentTimeMillis()
 
-                    baseAddressChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                    baseAddressChar.writeType =
+                        BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
                     baseAddressChar.value = byteArrayOf(0x02, 0x00, 0x00, 0x00)
                     ConnectionManager.writeCharacteristic(baseAddressChar)
                     Thread.sleep(20)
@@ -119,7 +174,8 @@ val featureCatalog = listOf(
                             Thread.sleep(50)
                             activity.runOnUiThread {
                                 progressBar.progress = index + 1
-                                selectedFileTextView.text = "Chunk $index of ${chunks.size} written"
+                                selectedFileTextView.text =
+                                    "Chunk $index of ${chunks.size} written"
                             }
                         }
 
@@ -134,17 +190,26 @@ val featureCatalog = listOf(
                             AlertDialog.Builder(activity)
                                 .setTitle("Upload Sent")
                                 .setMessage("OTA complete. Sent in $seconds seconds. Reboot should follow.")
-                                .setPositiveButton("OK", null)
+                                .setPositiveButton("OK") { _, _ ->
+                                    val intent = Intent(activity, ScanActivity::class.java)
+                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                    activity.startActivity(intent)
+                                    activity.finish()
+                                }
                                 .show()
+
                         }
                     }.start()
                 }
+            } else {
+                selectFileButton.isEnabled = false
+                selectedFileTextView.text = "File picker unavailable"
             }
         }
     ),
 
     DiscoveredFeature(
-        name = "My Bootloader Reboot",
+        name = "Req BLE FoTA",
         layoutResId = R.layout.feature_reboot_request,
         serviceUUIDs = listOf(UUID.fromString(ble_fota_service_uuid)),
         characteristicUUIDs = listOf(UUID.fromString(ble_fota_reboot_request_characteristic_uuid)),
@@ -202,6 +267,7 @@ val featureCatalog = listOf(
 
             fun showCloudFilePicker(activity: ServiceControlActivity) {
                 MqttManager.retrieveAvailableFirmware(
+                    "STM",
                     onResult = { cloudFiles ->
                         activity.runOnUiThread {
                             val bottomSheetView = activity.layoutInflater.inflate(R.layout.bottom_sheet_file_selector, null)
@@ -220,21 +286,20 @@ val featureCatalog = listOf(
                                         selectedFirmwareFile!!.writeBytes(firmwareBytes)
                                         selectedFileUri = null
                                         selectedFileTextView.text = selectedFile.name
-                                        android.widget.Toast.makeText(activity, "✅ Firmware ready: ${selectedFile.name}", android.widget.Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(activity, "✅ Firmware ready: ${selectedFile.name}", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                                 dialog.dismiss()
                             }
-
                             dialog.show()
                         }
                     },
                     onError = { error ->
                         activity.runOnUiThread {
-                            android.widget.Toast.makeText(
+                            Toast.makeText(
                                 activity,
                                 "⚠️ Failed to fetch firmware list: ${error.message}",
-                                android.widget.Toast.LENGTH_LONG
+                                Toast.LENGTH_LONG
                             ).show()
                         }
                     }
