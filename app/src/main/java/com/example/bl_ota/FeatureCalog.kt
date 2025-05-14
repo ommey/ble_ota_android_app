@@ -27,21 +27,14 @@ const val stm_ota_reboot_request_characteristic_uuid: String = "0000FE11-8e22-45
 val stm_ota_file_upload_reboot_confirmation_characteristic_uuid: UUID? =
     UUID.fromString("0000FE23-8e22-4541-9d4c-21edae82ed19")
 
-
 const val ble_fota_service_uuid: String = "b1e0f07a-0000-0000-0000-000baad0b055"
 const val ble_fota_base_address_characteristic_uuid: String = "b1e0f07a-0001-0000-0000-000baad0b055"
 const val ble_fota_raw_data_characteristic_uuid: String = "b1e0f07a-0003-0000-0000-000baad0b055"
 const val ble_fota_reboot_request_characteristic_uuid: String = "b1e0f07a-0004-0000-0000-000baad0b055"
 
-//val my_boot_service_uuid = UUID.fromString("b1e0f07a-0000-0000-0000-00000baad0b055")
-//val my_boot_base_char_uuid = UUID.fromString("b1e0f07a-0001-0000-0000-00000baad0b055")
-//val my_boot_raw_data_char_uuid = UUID.fromString("b1e0f07a-0003-0000-0000-00000baad0b055")
-//val my_boot_reboot_char_uuid = UUID.fromString("b1e0f07a-0004-0000-0000-00000baad0b055")
-
-
-
 var otaStartTime: Long = 0
 var otaEndTime: Long = 0
+
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("MissingPermission", "SetTextI18n")
 val featureCatalog = listOf(
